@@ -754,7 +754,7 @@ if(!validStep1()){gotoStep(1);return}
 collectCtx();const ts=tsFromInputs(draft.date,draft.hour,draft.minute,draft.ampm);
 const obj={id:editingId||('m'+Date.now()+Math.floor(Math.random()*999)),sys:+draft.sys,dia:+draft.dia,hr:draft.hr===''?null:+draft.hr,date:draft.date,timestamp:ts,stress:+draft.stress,exercise:draft.exercise,exerciseWhen:draft.exerciseWhen,caffeine:draft.caffeine,nicotine:draft.nicotine,alcohol:draft.alcohol,sleep:draft.sleep,sleepHours:+draft.sleepHours,activity:draft.activity,symptoms:draft.symptoms.slice(),notes:draft.notes};
 if(editingId){const i=DB[currentProfile].measurements.findIndex(m=>m.id===editingId);if(i>=0)DB[currentProfile].measurements[i]=obj}else DB[currentProfile].measurements.push(obj);
-saveDB();closeAdd();renderAll();updateGateCounts();lastSaved=obj;
+saveDB();saveToSupabase(obj);closeAdd();renderAll();updateGateCounts();lastSaved=obj;
 if(!editingId)showFeedback(obj);else toast('Measurement updated');
 editingId=null;
 }
