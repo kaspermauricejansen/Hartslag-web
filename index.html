@@ -1,1422 +1,818 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Pulse Journal — Blood Pressure & Heart Rate Tracker</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pulse Journal — Kasper & Elle</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fraunces:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config={theme:{extend:{fontFamily:{display:['Outfit','sans-serif'],body:['Inter','sans-serif']},colors:{ink:'#152726',muted:'#6B7D7A',tealx:'#0E9384',tealdark:'#0A6B5E',cream:'#F6F7F3',rose2:'#E85D6A',lav:'#8B8FD9'},boxShadow:{card:'0 12px 32px -12px rgba(21,39,38,.14)',pop:'0 24px 60px -18px rgba(10,50,45,.28)'}}}}
+</script>
 <style>
-  :root{
-    --bg:#f4f7f5;
-    --bg-soft:#eaf0ee;
-    --ink:#1f2a2e;
-    --ink-soft:#5a6b6f;
-    --line:#dfe7e4;
-    --kasper:#3b82f6;
-    --kasper-soft:#dbeafe;
-    --elle:#e11d8a;
-    --elle-soft:#fce7f3;
-    --accent:#0f766e;
-    --accent-soft:#ccfbf1;
-    --warn:#b45309;
-    --warn-soft:#fef3c7;
-    --danger:#b91c1c;
-    --danger-soft:#fee2e2;
-  }
-  *{ -webkit-tap-highlight-color: transparent; }
-  html,body{ background:var(--bg); color:var(--ink); font-family:'Inter',system-ui,sans-serif; }
-  .font-display{ font-family:'Fraunces', serif; }
-  .no-scrollbar::-webkit-scrollbar{ display:none; }
-  .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
-  .glass{ backdrop-filter: blur(12px); background: rgba(255,255,255,0.85); }
-  .card{ background:#fff; border:1px solid var(--line); border-radius:20px; box-shadow:0 1px 2px rgba(20,40,40,0.04), 0 8px 24px -12px rgba(20,40,40,0.08); }
-  .pill-btn{ transition: all .2s ease; }
-  .pill-btn:active{ transform: scale(.96); }
-  .fade-in{ animation: fadeIn .35s ease both; }
-  @keyframes fadeIn{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
-  .sheet-enter{ animation: sheetUp .35s cubic-bezier(.16,1,.3,1) both; }
-  @keyframes sheetUp{ from{ transform: translateY(100%);} to{ transform: translateY(0);} }
-  .overlay-enter{ animation: fadeIn .2s ease both; }
-  .pulse-ring{ animation: pulseRing 1.6s ease-out infinite; }
-  @keyframes pulseRing{ 0%{ box-shadow:0 0 0 0 rgba(15,118,110,.35);} 70%{ box-shadow:0 0 0 24px rgba(15,118,110,0);} 100%{ box-shadow:0 0 0 0 rgba(15,118,110,0);} }
-  .mic-listening{ animation: micListen 1s ease-in-out infinite alternate; }
-  @keyframes micListen{ from{ transform: scale(1);} to{ transform: scale(1.06);} }
-  input,select,textarea{ font-family:inherit; }
-  .seg-active{ background:var(--ink); color:#fff !important; }
-  .nav-active{ color:var(--ink); }
-  .nav-active .nav-dot{ opacity:1; transform:scale(1); }
-  .nav-dot{ opacity:0; transform:scale(0); transition: all .2s; }
-  .shimmer{ background:linear-gradient(90deg,#f1f5f4 25%,#e6edea 37%,#f1f5f4 63%); background-size:400% 100%; animation: shimmer 1.4s ease infinite; }
-  @keyframes shimmer{ 0%{background-position:100% 50%;} 100%{background-position:0 50%;} }
-  .tab-shadow{ box-shadow: 0 -8px 24px -10px rgba(20,40,40,0.12); }
-  .ring-kasper{ box-shadow: 0 0 0 3px var(--kasper-soft); }
-  .ring-elle{ box-shadow: 0 0 0 3px var(--elle-soft); }
-  .switch-kasper{ background:linear-gradient(135deg,#3b82f6,#60a5fa); }
-  .switch-elle{ background:linear-gradient(135deg,#e11d8a,#f472b6); }
-  textarea{ resize:none; }
-  .chip{ transition: all .15s; }
-  .chip:hover{ transform: translateY(-1px); }
-  .chart-wrap{ position:relative; height: 240px; }
-  .breathe{ animation: breathe 4s ease-in-out infinite; }
-  @keyframes breathe{ 0%,100%{ transform: scale(1);} 50%{ transform: scale(1.04);} }
-  details > summary{ list-style:none; }
-  details > summary::-webkit-details-marker{ display:none; }
+*{-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:#E3E9E5;color:#152726;margin:0}
+.font-display{font-family:'Outfit',sans-serif}
+.app-shell{max-width:560px;margin:0 auto;min-height:100vh;background:#F6F7F3;position:relative;box-shadow:0 0 0 1px rgba(0,0,0,.06),0 30px 80px -30px rgba(0,0,0,.25);overflow-x:hidden}
+@media(min-width:640px){body{padding:24px 0}.app-shell{border-radius:32px;min-height:calc(100vh - 48px);overflow:hidden}}
+.bg-blob{position:fixed;border-radius:9999px;filter:blur(90px);opacity:.5;pointer-events:none;z-index:0}
+.gate-bg{background:linear-gradient(180deg,#F6F7F3 0%,#EAF2ED 50%,#E7ECE6 100%)}
+.card{background:#fff;border-radius:24px;box-shadow:0 12px 32px -12px rgba(21,39,38,.14);border:1px solid rgba(21,39,38,.06)}
+.pill{font-size:12px;font-weight:700;padding:7px 14px;border-radius:999px;background:#EFF3F0;color:#5B6F6C;border:1px solid transparent;transition:.2s;white-space:nowrap;cursor:pointer}
+.pill.active{background:#152726;color:#fff}
+.btn-primary{background:linear-gradient(135deg,#0E9384,#0A6B5E);color:#fff;font-weight:700;border-radius:18px;box-shadow:0 14px 26px -10px rgba(14,147,132,.55);transition:.2s;cursor:pointer;border:none}
+.btn-primary:active{transform:scale(.98)}
+.btn-soft{background:#EAF4F0;color:#0A6B5E;font-weight:700;border-radius:18px;border:none;cursor:pointer}
+.btn-ghost{background:#fff;border:1px solid rgba(21,39,38,.1);font-weight:600;border-radius:18px;cursor:pointer}
+.chip{padding:9px 14px;border-radius:999px;font-size:13px;font-weight:600;background:#F1F4F2;color:#4B5F5C;border:1.5px solid transparent;cursor:pointer;transition:.18s;user-select:none}
+.chip.selected{background:#152726;color:#fff;border-color:#152726}
+.vital-input{font-family:'Outfit';font-size:44px;font-weight:800;width:100%;text-align:center;background:transparent;outline:none;color:#152726;border:none}
+.vital-box{background:#fff;border:2px solid #E6ECE9;border-radius:22px;transition:.2s}
+.vital-box:focus-within{border-color:#0E9384;box-shadow:0 0 0 4px rgba(14,147,132,.12)}
+.stepper{width:38px;height:38px;border-radius:12px;background:#EFF3F0;font-weight:800;font-size:20px;line-height:1;color:#0A6B5E;border:none;cursor:pointer}
+.sheet-wrap{position:fixed;inset:0;z-index:80;display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:640px){.sheet-wrap{align-items:center;padding:20px}}
+.sheet{width:100%;max-width:560px;background:#F6F7F3;border-radius:28px 28px 0 0;max-height:94vh;overflow:hidden;display:flex;flex-direction:column;animation:slideUp .38s cubic-bezier(.2,.9,.25,1);box-shadow:0 -20px 80px rgba(0,0,0,.25)}
+@media(min-width:640px){.sheet{border-radius:28px;max-height:90vh}}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes fadeUp{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
+.fadeUp{animation:fadeUp .4s ease both}
+.backdrop{position:absolute;inset:0;background:rgba(21,39,38,.45);backdrop-filter:blur(6px)}
+.wave{display:flex;gap:4px;align-items:center;height:44px;justify-content:center}
+.wave span{width:5px;border-radius:99px;background:#0E9384;animation:wv 1s infinite ease-in-out}
+.wave span:nth-child(2){animation-delay:.1s}.wave span:nth-child(3){animation-delay:.2s}.wave span:nth-child(4){animation-delay:.3s}.wave span:nth-child(5){animation-delay:.4s}.wave span:nth-child(6){animation-delay:.5s}.wave span:nth-child(7){animation-delay:.6s}
+@keyframes wv{0%,100%{height:10px;opacity:.5}50%{height:36px;opacity:1}}
+.listening .wave span{background:#E85D6A}
+.toggle{width:48px;height:28px;background:#DDE5E2;border-radius:99px;position:relative;transition:.2s;flex-shrink:0;cursor:pointer;border:none}
+.toggle::after{content:'';position:absolute;width:22px;height:22px;background:#fff;border-radius:99px;top:3px;left:3px;transition:.2s;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+.toggle.on{background:#0E9384}.toggle.on::after{left:23px}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:560px;z-index:50;background:rgba(255,255,255,.9);backdrop-filter:blur(16px);border-top:1px solid rgba(21,39,38,.08);border-radius:24px 24px 0 0}
+@media(min-width:640px){.bottom-nav{bottom:24px;border-radius:24px;border:1px solid rgba(21,39,38,.08);box-shadow:0 20px 50px -12px rgba(0,0,0,.25)}}
+.nav-btn{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:700;color:#8AA09C;padding:10px 0 12px;letter-spacing:.3px;background:none;border:none;cursor:pointer}
+.nav-btn.active{color:#0A6B5E}
+.nav-btn.active .nav-ic{background:#152726;color:#fff}
+.nav-ic{width:42px;height:28px;border-radius:99px;display:flex;align-items:center;justify-content:center;transition:.2s}
+.add-fab{width:60px;height:60px;border-radius:22px;background:linear-gradient(135deg,#0E9384,#0A6B5E);color:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 14px 26px -8px rgba(14,147,132,.6);margin-top:-28px;border:4px solid #F6F7F3;transition:.2s;cursor:pointer}
+.add-fab:active{transform:scale(.94)}
+.timeline-dot{width:14px;height:14px;border-radius:99px;border:3px solid #fff;box-shadow:0 0 0 2px rgba(14,147,132,.25);flex-shrink:0}
+.no-scrollbar::-webkit-scrollbar{display:none}.no-scrollbar{scrollbar-width:none}
+.profile-card{transition:.25s;cursor:pointer;border:2px solid transparent}
+.profile-card:hover{transform:translateY(-4px)}
+.toast{animation:slideUp .3s ease}
+.dot-sys{background:#0E9384}.dot-dia{background:#8B8FD9}.dot-hr{background:#E85D6A}
+input[type=range]{accent-color:#0E9384}
+.cat-typical{background:#E6F4EF;color:#0A6B5E}.cat-elev{background:#FFF4DE;color:#9A6B00}.cat-s1{background:#FFE9E2;color:#B64A2B}.cat-s2{background:#FFE0E0;color:#B4232A}.cat-low{background:#E8EFFA;color:#3B5B9A}
+canvas{max-height:260px}
+select{appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7D7A' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+.mic-pulse{animation:micPulse 1.6s infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 0 0 0 rgba(232,93,106,.4)}50%{box-shadow:0 0 0 18px rgba(232,93,106,0)}}
 </style>
 </head>
-<body class="min-h-screen">
+<body class="font-body">
+<div class="bg-blob" style="width:400px;height:400px;background:#BFE6D9;top:-100px;left:-100px"></div>
+<div class="bg-blob" style="width:380px;height:380px;background:#FFD9D2;bottom:-80px;right:-100px"></div>
 
-<!-- ====================== PROFILE SELECTION ====================== -->
-<section id="profileGate" class="fixed inset-0 z-50 flex items-center justify-center px-6"
-  style="background: radial-gradient(circle at 30% 20%, #dceae6, #f4f7f5 60%);">
-  <div class="w-full max-w-md text-center fade-in">
-    <div class="mx-auto mb-8 w-20 h-20 rounded-3xl flex items-center justify-center breathe"
-      style="background:linear-gradient(135deg,#0f766e,#14b8a6); box-shadow:0 20px 40px -12px rgba(15,118,110,.4);">
-      <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M3 12h4l2-6 4 12 2-6h6"/>
-      </svg>
-    </div>
-    <h1 class="font-display text-4xl font-semibold tracking-tight">Pulse Journal</h1>
-    <p class="mt-3 text-[var(--ink-soft)]">A calm, private log for your blood pressure and heart rate.</p>
-    <h2 class="mt-10 text-sm font-medium uppercase tracking-widest text-[var(--ink-soft)]">Who are you?</h2>
-    <div class="mt-5 grid grid-cols-2 gap-4">
-      <button onclick="selectProfile('Kasper')" class="pill-btn group rounded-3xl p-6 border border-[var(--line)] bg-white hover:ring-kasper transition-all">
-        <div class="w-14 h-14 mx-auto rounded-2xl switch-kasper flex items-center justify-center text-white text-2xl font-bold">K</div>
-        <p class="mt-3 font-semibold">Kasper</p>
-        <p class="text-xs text-[var(--ink-soft)]">Open journal</p>
-      </button>
-      <button onclick="selectProfile('Elle')" class="pill-btn group rounded-3xl p-6 border border-[var(--line)] bg-white hover:ring-elle transition-all">
-        <div class="w-14 h-14 mx-auto rounded-2xl switch-elle flex items-center justify-center text-white text-2xl font-bold">E</div>
-        <p class="mt-3 font-semibold">Elle</p>
-        <p class="text-xs text-[var(--ink-soft)]">Open journal</p>
-      </button>
-    </div>
-    <p class="mt-10 text-xs text-[var(--ink-soft)] leading-relaxed">
-      Each profile keeps its own private data. Nothing is shared between Kasper and Elle.<br/>
-      <span class="opacity-70">For personal tracking only — not a medical device.</span>
-    </p>
-  </div>
+<!-- PROFILE GATE -->
+<div id="profileGate" class="fixed inset-0 z-[100] overflow-y-auto">
+<div class="absolute inset-0 gate-bg"></div>
+<div class="relative min-h-full flex items-center justify-center p-5 py-10">
+<div class="w-full max-w-[500px] fadeUp">
+<div class="flex items-center justify-center gap-2 mb-6">
+<div class="w-10 h-10 rounded-2xl flex items-center justify-center text-white font-display text-xl font-bold" style="background:linear-gradient(135deg,#0E9384,#0A6B5E)">♥</div>
+<div class="font-display font-bold text-xl tracking-tight">pulse <span class="text-tealx">·</span> <span class="font-medium text-muted">journal</span></div>
+</div>
+<div class="card p-7 sm:p-8 text-center">
+<div class="inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-tealx bg-[#E6F4EF] px-3 py-1.5 rounded-full mb-4">Private health journal</div>
+<h1 class="font-display font-bold text-[36px] leading-tight">Who are you?</h1>
+<p class="text-muted text-[14px] mt-2 leading-relaxed">Choose your profile to open your private journal.<br>Your data always stays completely separate.</p>
+<div class="grid grid-cols-2 gap-3 mt-6">
+<button onclick="selectProfile('kasper')" class="profile-card text-left rounded-3xl p-5 hover:border-[#0E9384] bg-[#F1F7F5]">
+<div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-display font-bold text-2xl mb-3" style="background:linear-gradient(135deg,#0E9384,#0A5A4F)">K</div>
+<div class="font-display font-bold text-lg">Kasper</div>
+<div id="gateCountK" class="text-[12px] text-muted font-medium">0 readings</div>
+<div class="mt-3 text-[12px] font-bold text-tealdark flex items-center gap-1">Open journal <span>→</span></div>
+</button>
+<button onclick="selectProfile('elle')" class="profile-card text-left rounded-3xl p-5 hover:border-[#E85D6A] bg-[#FFF4F2]">
+<div class="w-14 h-14 rounded-2xl flex items-center justify-center text-white font-display font-bold text-2xl mb-3" style="background:linear-gradient(135deg,#E88B7A,#C94A5A)">E</div>
+<div class="font-display font-bold text-lg">Elle</div>
+<div id="gateCountE" class="text-[12px] text-muted font-medium">0 readings</div>
+<div class="mt-3 text-[12px] font-bold text-[#C94A5A] flex items-center gap-1">Open journal <span>→</span></div>
+</button>
+</div>
+<div class="mt-5 flex items-center justify-center gap-2 text-[12px] text-muted font-medium">
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+Stored only on this device · Never mixed
+</div>
+<div class="mt-4 bg-[#F6F7F3] rounded-2xl p-3 text-[12px] text-muted leading-relaxed">✨ Fresh start — your journal begins empty. Add your first measurement to begin your story.</div>
+</div>
+<p class="text-center text-[11px] text-[#6B7D7A] mt-4 px-6 leading-relaxed">For personal tracking and general information only. Not a medical device. Does not diagnose conditions and does not replace professional healthcare advice.</p>
+</div>
+</div>
+</div>
+
+<!-- APP -->
+<div id="app" class="app-shell hidden relative z-10">
+<header class="sticky top-0 z-40 bg-[#F6F7F3]/90 backdrop-blur-xl border-b border-black/5">
+<div class="px-4 pt-4 pb-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-9 h-9 rounded-xl flex items-center justify-center text-white font-bold" style="background:linear-gradient(135deg,#0E9384,#0A6B5E)">♥</div>
+<div class="leading-tight"><div class="font-display font-bold text-[15px]">pulse journal</div><div class="text-[11px] text-muted font-medium">calm · private · simple</div></div>
+</div>
+<div class="flex items-center gap-2">
+<button onclick="openReminders()" class="relative w-10 h-10 rounded-2xl bg-white border border-black/5 flex items-center justify-center shadow-sm" aria-label="Reminders">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#152726" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+<span id="remDot" class="hidden absolute top-2 right-2 w-2 h-2 rounded-full bg-[#E85D6A]"></span>
+</button>
+<button onclick="openSwitch()" id="profilePill" class="flex items-center gap-2 bg-[#152726] text-white pl-1.5 pr-3 py-1.5 rounded-2xl shadow">
+<span id="pillAvatar" class="w-8 h-8 rounded-xl flex items-center justify-center font-display font-bold text-[15px]" style="background:#0E9384">K</span>
+<span class="text-left leading-tight"><span id="pillName" class="block text-[13px] font-bold">Kasper</span><span class="block text-[10px] opacity-70 font-medium">Tap to switch</span></span>
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M8 3L4 7l4 4M4 7h16M16 21l4-4-4-4M20 17H4"/></svg>
+</button>
+</div>
+</div>
+<div class="mt-2.5 flex items-center gap-2 text-[11px] font-semibold"><span id="activeDot" class="w-2 h-2 rounded-full bg-[#0E9384] animate-pulse"></span><span id="activeLabel" class="text-muted">Viewing Kasper's private journal</span></div>
+</div>
+</header>
+
+<main class="px-4 pt-4 pb-36">
+<!-- OVERVIEW -->
+<section id="screen-overview">
+<div class="flex items-end justify-between mb-3">
+<div><div id="greetTitle" class="font-display font-bold text-[24px] leading-tight">Good morning</div><div id="greetDate" class="text-[13px] text-muted font-medium">—</div></div>
+<button onclick="openAdd()" class="btn-primary text-[13px] px-4 py-2.5 flex items-center gap-1.5"><span class="text-lg leading-none">+</span> Add</button>
+</div>
+
+<div id="overviewEmpty" class="hidden card p-8 text-center">
+<div class="w-16 h-16 mx-auto rounded-3xl bg-[#EAF4F0] flex items-center justify-center text-3xl mb-3">♡</div>
+<div class="font-display font-bold text-lg">No readings yet</div>
+<p class="text-muted text-[13px] mt-1">Start your journal with your first measurement. It only takes a moment.</p>
+<button onclick="openAdd()" class="btn-primary w-full py-3.5 mt-4 text-[15px]">+ Add Measurement</button>
+<button onclick="openVoice()" class="btn-soft w-full py-3 mt-2 text-[14px] flex items-center justify-center gap-2">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg>
+Record by Voice
+</button>
+<p class="text-[11px] text-muted mt-3 leading-relaxed">Personal tracking and general information only. Not a medical device.</p>
+</div>
+
+<div id="overviewContent" class="space-y-3">
+<div class="card p-5 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-40 h-40 rounded-full opacity-20" style="background:radial-gradient(circle,#0E9384,transparent 70%);margin:-40px -40px 0 0"></div>
+<div class="flex items-center justify-between"><div class="text-[11px] font-bold uppercase tracking-widest text-muted">Latest blood pressure</div><span id="ovCat" class="text-[11px] font-bold px-2.5 py-1 rounded-full cat-typical">Typical</span></div>
+<div class="flex items-end gap-2 mt-1"><span id="ovSys" class="font-display font-bold text-[52px] leading-none">—</span><span class="font-display text-[28px] text-muted font-medium leading-none pb-1">/</span><span id="ovDia" class="font-display font-bold text-[52px] leading-none">—</span><span class="text-[12px] font-bold text-muted pb-2 ml-1">mmHg</span></div>
+<div id="ovWhen" class="text-[13px] text-muted font-medium mt-1">—</div>
+<div id="ovDelta" class="mt-3 text-[12px] font-semibold inline-flex items-center gap-1.5 bg-[#F1F4F2] px-3 py-1.5 rounded-full">—</div>
+</div>
+
+<div class="grid grid-cols-2 gap-3">
+<div class="card p-4"><div class="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-muted"><span class="w-2 h-2 rounded-full dot-hr"></span> Heart rate</div><div class="mt-1 flex items-baseline gap-1"><span id="ovHr" class="font-display font-bold text-[34px]">—</span><span class="text-[11px] font-bold text-muted">BPM</span></div><div id="ovHrNote" class="text-[11px] font-semibold text-muted">—</div></div>
+<div class="card p-4"><div class="text-[11px] font-bold uppercase tracking-widest text-muted">Measurements</div><div id="ovCount" class="font-display font-bold text-[34px] mt-1">0</div><div id="ovTodayCount" class="text-[11px] font-semibold text-tealdark">— today</div></div>
+</div>
+
+<div class="card p-4">
+<div class="text-[11px] font-bold uppercase tracking-widest text-muted mb-2">Recent average · last 7 days</div>
+<div class="flex items-center gap-4">
+<div><div id="ovAvgBp" class="font-display font-bold text-[22px]">—</div><div class="text-[11px] text-muted font-medium">systolic / diastolic</div></div>
+<div class="w-px h-10 bg-black/10"></div>
+<div><div id="ovAvgHr" class="font-display font-bold text-[22px]">—</div><div class="text-[11px] text-muted font-medium">avg pulse</div></div>
+</div>
+</div>
+
+<div class="card p-5" style="background:linear-gradient(135deg,#152726,#1E3A38);border:none;color:#fff">
+<div class="flex items-center gap-2 mb-2"><span class="text-[16px]">✦</span><span class="text-[11px] font-bold uppercase tracking-widest opacity-70">Gentle insight</span></div>
+<p id="ovInsight" class="text-[13.5px] leading-relaxed opacity-95">—</p>
+</div>
+
+<div class="card p-4">
+<div class="flex items-center justify-between mb-1"><div class="font-display font-bold text-[15px]">Blood pressure trend</div><div class="flex items-center gap-2 text-[10px] font-bold text-muted"><span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full dot-sys"></span>SYS</span><span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full dot-dia"></span>DIA</span></div></div>
+<div id="ovPills" class="flex gap-1.5 overflow-x-auto no-scrollbar py-2"></div>
+<div class="relative"><div style="height:220px"><canvas id="chartOverviewBP"></canvas></div><div id="ovBpEmpty" class="hidden absolute inset-0 flex items-center justify-center text-[13px] text-muted font-medium">No readings in this period</div></div>
+</div>
+
+<div class="card p-4">
+<div class="flex items-center justify-between mb-1"><div class="font-display font-bold text-[15px]">Heart rate trend</div><div class="flex items-center gap-1 text-[10px] font-bold text-muted"><span class="w-2.5 h-2.5 rounded-full dot-hr"></span>PULSE</div></div>
+<div class="relative"><div style="height:170px"><canvas id="chartOverviewHR"></canvas></div><div id="ovHrEmpty" class="hidden absolute inset-0 flex items-center justify-center text-[13px] text-muted font-medium">No readings in this period</div></div>
+</div>
+
+<div class="card p-4">
+<div class="flex items-center justify-between mb-3"><div class="font-display font-bold text-[15px]">Today</div><button onclick="switchTab('daily')" class="text-[12px] font-bold text-tealx">View daily →</button></div>
+<div id="ovTodayList" class="space-y-2"></div>
+</div>
+
+<div class="card p-4">
+<div class="flex items-center justify-between mb-2"><div class="font-display font-bold text-[15px] flex items-center gap-2">Reminders <span id="ovRemCount" class="text-[11px] bg-[#EAF4F0] text-tealdark px-2 py-0.5 rounded-full font-bold">0</span></div><button onclick="openReminders()" class="text-[12px] font-bold text-tealx">Manage →</button></div>
+<div id="ovRemList" class="text-[13px] text-muted"></div>
+</div>
+
+<button onclick="openAdd()" class="btn-primary w-full py-4 text-[16px] flex items-center justify-center gap-2"><span class="text-xl">+</span> Add Measurement</button>
+<p class="text-[11px] text-muted text-center leading-relaxed px-2">Personal tracking and general information only. Not a medical device. Does not diagnose. If you feel unwell or are concerned, please contact a health professional promptly.</p>
+</div>
 </section>
 
-<!-- ====================== APP SHELL ====================== -->
-<div id="app" class="hidden max-w-md mx-auto pb-28 min-h-screen relative">
+<!-- DAILY -->
+<section id="screen-daily" class="hidden space-y-3">
+<div class="card p-4">
+<div class="flex items-center justify-between">
+<button onclick="changeDaily(-1)" class="w-10 h-10 rounded-2xl bg-[#F1F4F2] font-bold text-xl">‹</button>
+<div class="text-center"><div id="dailyTitle" class="font-display font-bold text-[17px]">Today</div><div id="dailySub" class="text-[12px] text-muted font-medium">—</div></div>
+<button onclick="changeDaily(1)" class="w-10 h-10 rounded-2xl bg-[#F1F4F2] font-bold text-xl">›</button>
+</div>
+<button onclick="goToday()" class="w-full mt-3 text-[12px] font-bold text-tealx bg-[#EAF4F0] rounded-xl py-2">Jump to today</button>
+</div>
+<div id="dailyStats" class="grid grid-cols-3 gap-2"></div>
+<div class="font-display font-bold text-[15px] px-1 pt-1">All measurements this day</div>
+<div id="dailyList" class="space-y-2"></div>
+<button onclick="openAdd()" class="btn-primary w-full py-4 text-[16px]">+ Add Measurement</button>
+</section>
 
-  <!-- Top bar -->
-  <header class="sticky top-0 z-30 glass border-b border-[var(--line)]">
-    <div class="flex items-center justify-between px-5 py-3.5">
-      <div class="flex items-center gap-2.5">
-        <div id="avatar" class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold"></div>
-        <div>
-          <p class="text-[11px] uppercase tracking-wider text-[var(--ink-soft)] leading-none">Profile</p>
-          <p id="profileName" class="font-semibold leading-tight"></p>
-        </div>
-      </div>
-      <div class="flex items-center gap-2">
-        <button onclick="openSwitchProfile()" class="pill-btn text-xs font-medium px-3.5 py-2 rounded-full border border-[var(--line)] bg-white hover:bg-[var(--bg-soft)] flex items-center gap-1.5">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="M4 4l5 5"/></svg>
-          Switch
-        </button>
-      </div>
-    </div>
-  </header>
+<!-- TRENDS -->
+<section id="screen-trends" class="hidden space-y-3">
+<div class="font-display font-bold text-[22px]">Trends</div>
+<p class="text-[13px] text-muted -mt-2">Compare your recent readings with your own history.</p>
+<div id="trendPills" class="flex gap-1.5 overflow-x-auto no-scrollbar py-1"></div>
+<div id="trendsKPIs" class="grid grid-cols-3 gap-2"></div>
+<div class="card p-4"><div class="font-display font-bold text-[15px] mb-2">Blood pressure · average & range</div><div class="relative"><div style="height:220px"><canvas id="chartTrendsBP"></canvas></div><div id="trBpEmpty" class="hidden absolute inset-0 flex items-center justify-center text-[13px] text-muted">No readings in this period</div></div><div id="trBpMeta" class="mt-2 text-[12px] text-muted font-medium"></div></div>
+<div class="card p-4"><div class="font-display font-bold text-[15px] mb-2">Heart rate · average & range</div><div class="relative"><div style="height:170px"><canvas id="chartTrendsHR"></canvas></div><div id="trHrEmpty" class="hidden absolute inset-0 flex items-center justify-center text-[13px] text-muted">No readings in this period</div></div><div id="trHrMeta" class="mt-2 text-[12px] text-muted font-medium"></div></div>
+<div class="card p-5"><div class="font-display font-bold text-[15px] mb-3">Your patterns</div><div id="trendsInsights" class="space-y-2.5"></div></div>
+<div class="card p-5" style="background:linear-gradient(135deg,#FFF6F0,#fff)"><div class="font-display font-bold text-[15px]">Latest vs your recent average</div><div id="trendsCompare" class="mt-3 space-y-2"></div></div>
+<p class="text-[11px] text-muted text-center px-2">Trends describe your own journal patterns only. They are not diagnoses. Share your journal with a clinician if you have questions.</p>
+</section>
 
-  <!-- Pages -->
-  <main id="pageContainer" class="px-5 pt-5"></main>
+<!-- HISTORY -->
+<section id="screen-history" class="hidden space-y-3">
+<div class="flex items-center justify-between"><div class="font-display font-bold text-[22px]">History</div><button onclick="exportCSV()" class="btn-ghost text-[12px] px-3 py-2">Export CSV</button></div>
+<div class="card p-3 flex items-center gap-2">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7D7A" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+<input id="histSearch" oninput="onHistSearch(this.value)" placeholder="Search notes, symptoms…" class="w-full bg-transparent text-[14px] outline-none border-none">
+</div>
+<div id="histPills" class="flex gap-1.5 overflow-x-auto no-scrollbar"></div>
+<div id="histCount" class="text-[12px] text-muted font-semibold px-1"></div>
+<div id="historyList" class="space-y-3"></div>
+</section>
+</main>
 
-  <!-- Floating add button -->
-  <button onclick="openAddMeasurement()" id="fab"
-    class="fixed bottom-24 left-1/2 -translate-x-1/2 z-30 pill-btn flex items-center gap-2 px-6 py-4 rounded-full text-white font-semibold shadow-xl"
-    style="background:linear-gradient(135deg,#0f766e,#14b8a6); box-shadow:0 16px 30px -10px rgba(15,118,110,.5);">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-    Add Measurement
-  </button>
-
-  <!-- Bottom nav -->
-  <nav class="fixed bottom-0 left-0 right-0 z-30 glass border-t border-[var(--line)] tab-shadow">
-    <div class="max-w-md mx-auto grid grid-cols-4">
-      <button onclick="navTo('overview')" id="navOverview" class="nav-btn py-3.5 flex flex-col items-center gap-1 text-[var(--ink-soft)]">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
-        <span class="text-[10px] font-medium">Overview</span>
-        <span class="nav-dot w-1 h-1 rounded-full bg-[var(--accent)]"></span>
-      </button>
-      <button onclick="navTo('daily')" id="navDaily" class="nav-btn py-3.5 flex flex-col items-center gap-1 text-[var(--ink-soft)]">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-        <span class="text-[10px] font-medium">Today</span>
-        <span class="nav-dot w-1 h-1 rounded-full bg-[var(--accent)]"></span>
-      </button>
-      <button onclick="navTo('trends')" id="navTrends" class="nav-btn py-3.5 flex flex-col items-center gap-1 text-[var(--ink-soft)]">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-        <span class="text-[10px] font-medium">Trends</span>
-        <span class="nav-dot w-1 h-1 rounded-full bg-[var(--accent)]"></span>
-      </button>
-      <button onclick="navTo('history')" id="navHistory" class="nav-btn py-3.5 flex flex-col items-center gap-1 text-[var(--ink-soft)]">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
-        <span class="text-[10px] font-medium">History</span>
-        <span class="nav-dot w-1 h-1 rounded-full bg-[var(--accent)]"></span>
-      </button>
-    </div>
-  </nav>
+<nav class="bottom-nav">
+<div class="grid grid-cols-5 items-end px-2">
+<button class="nav-btn active" data-tab="overview" onclick="switchTab('overview')"><span class="nav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V21H3z"/><path d="M9 21v-6h6v6"/></svg></span>Overview</button>
+<button class="nav-btn" data-tab="daily" onclick="switchTab('daily')"><span class="nav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>Daily</button>
+<button onclick="openAdd()" class="flex flex-col items-center pb-2 bg-transparent border-none"><span class="add-fab"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg></span><span class="text-[10px] font-bold text-tealdark mt-1">ADD</span></button>
+<button class="nav-btn" data-tab="trends" onclick="switchTab('trends')"><span class="nav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 3 3 5-6"/></svg></span>Trends</button>
+<button class="nav-btn" data-tab="history" onclick="switchTab('history')"><span class="nav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>History</button>
+</div>
+</nav>
 </div>
 
-<!-- ====================== PROFILE SWITCH MODAL ====================== -->
-<div id="switchModal" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-  <div class="absolute inset-0 bg-black/40 overlay-enter" onclick="closeSwitchProfile()"></div>
-  <div class="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-6 sheet-enter">
-    <div class="w-10 h-1.5 bg-[var(--line)] rounded-full mx-auto mb-5 sm:hidden"></div>
-    <h3 class="font-display text-2xl font-semibold">Switch profile</h3>
-    <p class="text-sm text-[var(--ink-soft)] mt-1">Data stays separate between profiles.</p>
-    <div class="mt-5 space-y-3">
-      <button onclick="selectProfile('Kasper')" id="switchKasper" class="pill-btn w-full flex items-center gap-3 p-4 rounded-2xl border border-[var(--line)] hover:bg-[var(--bg-soft)] text-left">
-        <div class="w-11 h-11 rounded-xl switch-kasper flex items-center justify-center text-white font-bold">K</div>
-        <div class="flex-1">
-          <p class="font-semibold">Kasper</p>
-          <p class="text-xs text-[var(--ink-soft)]" id="switchKasperMeta">—</p>
-        </div>
-        <span id="switchKasperCheck" class="hidden text-[var(--accent)]"></span>
-      </button>
-      <button onclick="selectProfile('Elle')" id="switchElle" class="pill-btn w-full flex items-center gap-3 p-4 rounded-2xl border border-[var(--line)] hover:bg-[var(--bg-soft)] text-left">
-        <div class="w-11 h-11 rounded-xl switch-elle flex items-center justify-center text-white font-bold">E</div>
-        <div class="flex-1">
-          <p class="font-semibold">Elle</p>
-          <p class="text-xs text-[var(--ink-soft)]" id="switchElleMeta">—</p>
-        </div>
-        <span id="switchElleCheck" class="hidden text-[var(--accent)]"></span>
-      </button>
-    </div>
-    <button onclick="closeSwitchProfile()" class="mt-5 w-full py-3 rounded-2xl bg-[var(--bg-soft)] font-medium text-sm">Cancel</button>
-  </div>
+<!-- ADD SHEET -->
+<div id="addSheet" class="sheet-wrap hidden">
+<div class="backdrop" onclick="closeAdd()"></div>
+<div class="sheet">
+<div class="p-5 pb-3 border-b border-black/5 bg-white rounded-t-[28px]">
+<div class="flex items-center justify-between">
+<div><div class="font-display font-bold text-[19px]" id="addTitle">Add Measurement</div><div id="addProfileNote" class="text-[12px] text-muted font-medium">Saving to Kasper's private journal</div></div>
+<button onclick="closeAdd()" class="w-9 h-9 rounded-xl bg-[#F1F4F2] font-bold border-none cursor-pointer">✕</button>
+</div>
+<div class="flex items-center gap-2 mt-3"><div id="stepDot1" class="flex-1 h-1.5 rounded-full bg-[#0E9384]"></div><div id="stepDot2" class="flex-1 h-1.5 rounded-full bg-[#E3E9E6]"></div><div id="stepDot3" class="flex-1 h-1.5 rounded-full bg-[#E3E9E6]"></div></div>
+<div id="stepLabel" class="text-[11px] font-bold uppercase tracking-widest text-muted mt-2">Step 1 of 3 · Readings</div>
+</div>
+<div class="overflow-y-auto p-5 pt-4 flex-1" style="max-height:62vh">
+<div id="addStep1" class="space-y-4">
+<div class="grid grid-cols-2 gap-3">
+<div class="vital-box p-3 text-center"><div class="text-[11px] font-bold uppercase tracking-widest text-muted flex items-center justify-center gap-1"><span class="w-2 h-2 rounded-full dot-sys"></span>Upper · SYS</div><input id="inSys" inputmode="numeric" class="vital-input" placeholder="120" maxlength="3"><div class="flex items-center justify-center gap-3 mt-1"><button class="stepper" onclick="stepVital('inSys',-1)">−</button><span class="text-[11px] font-bold text-muted">mmHg</span><button class="stepper" onclick="stepVital('inSys',1)">+</button></div></div>
+<div class="vital-box p-3 text-center"><div class="text-[11px] font-bold uppercase tracking-widest text-muted flex items-center justify-center gap-1"><span class="w-2 h-2 rounded-full dot-dia"></span>Lower · DIA</div><input id="inDia" inputmode="numeric" class="vital-input" placeholder="78" maxlength="3"><div class="flex items-center justify-center gap-3 mt-1"><button class="stepper" onclick="stepVital('inDia',-1)">−</button><span class="text-[11px] font-bold text-muted">mmHg</span><button class="stepper" onclick="stepVital('inDia',1)">+</button></div></div>
+</div>
+<div class="vital-box p-3 text-center"><div class="text-[11px] font-bold uppercase tracking-widest text-muted flex items-center justify-center gap-1"><span class="w-2 h-2 rounded-full dot-hr"></span>Heart rate · pulse</div><div class="flex items-center justify-center gap-3"><button class="stepper" onclick="stepVital('inHr',-1)">−</button><input id="inHr" inputmode="numeric" class="vital-input" style="font-size:36px;max-width:140px" placeholder="68" maxlength="3"><button class="stepper" onclick="stepVital('inHr',1)">+</button></div><div class="text-[11px] font-bold text-muted">beats per minute</div></div>
+<div id="vitalErr" class="hidden text-[12px] font-semibold text-[#B4232A] bg-[#FFE0E0] rounded-xl px-3 py-2"></div>
+<div class="card p-4">
+<div class="text-[12px] font-bold mb-2">Date & time</div>
+<input id="inDate" type="date" class="w-full bg-[#F1F4F2] rounded-xl px-3 py-2.5 text-[14px] font-semibold border-none">
+<div class="grid grid-cols-3 gap-2 mt-2">
+<select id="inHour" class="bg-[#F1F4F2] rounded-xl px-3 py-2.5 text-[14px] font-bold pr-8 border-none"></select>
+<select id="inMin" class="bg-[#F1F4F2] rounded-xl px-3 py-2.5 text-[14px] font-bold pr-8 border-none"></select>
+<div class="grid grid-cols-2 gap-1 bg-[#F1F4F2] rounded-xl p-1"><button id="ampmAM" onclick="setAmpm('AM')" class="text-[13px] font-bold rounded-lg py-1.5 bg-[#152726] text-white border-none">AM</button><button id="ampmPM" onclick="setAmpm('PM')" class="text-[13px] font-bold rounded-lg py-1.5 text-muted border-none bg-transparent">PM</button></div>
+</div>
+<div class="flex gap-2 mt-2"><button onclick="quickTime('now')" class="chip flex-1 text-center">Now</button><button onclick="quickTime('7:30AM')" class="chip flex-1 text-center">7:30 AM</button><button onclick="quickTime('9:00PM')" class="chip flex-1 text-center">9:00 PM</button></div>
+<div id="timePreview" class="text-center text-[12px] font-bold text-tealdark mt-2">—</div>
+</div>
+<button onclick="openVoice()" class="w-full rounded-3xl p-5 text-white flex items-center gap-4 text-left border-none cursor-pointer" style="background:linear-gradient(135deg,#152726,#2A4A47)">
+<span class="w-14 h-14 rounded-2xl bg-white/15 flex items-center justify-center flex-shrink-0"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg></span>
+<span><span class="block font-display font-bold text-[16px]">🎙 Record by Voice</span><span class="block text-[12px] opacity-70 font-medium">Say “122 over 78, pulse 70” — you confirm before saving</span></span>
+</button>
 </div>
 
-<!-- ====================== ADD MEASUREMENT SHEET ====================== -->
-<div id="addSheet" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-  <div class="absolute inset-0 bg-black/40 overlay-enter" onclick="closeAddMeasurement()"></div>
-  <div class="relative w-full max-w-md bg-[var(--bg)] rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto no-scrollbar sheet-enter">
-    <div class="sticky top-0 bg-[var(--bg)] px-6 pt-5 pb-3 z-10">
-      <div class="w-10 h-1.5 bg-[var(--line)] rounded-full mx-auto mb-4 sm:hidden"></div>
-      <div class="flex items-center justify-between">
-        <h3 class="font-display text-2xl font-semibold">New measurement</h3>
-        <button onclick="closeAddMeasurement()" class="w-9 h-9 rounded-full bg-white border border-[var(--line)] flex items-center justify-center">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
-      <p id="addProfileLabel" class="text-xs text-[var(--ink-soft)] mt-1"></p>
-    </div>
-
-    <div class="px-6 pb-6 space-y-5">
-      <!-- Voice -->
-      <div class="card p-5 text-center">
-        <p class="text-sm font-medium mb-3">Record by Voice</p>
-        <button id="micBtn" onclick="toggleVoice()" class="mx-auto w-20 h-20 rounded-full flex items-center justify-center text-white pulse-ring"
-          style="background:linear-gradient(135deg,#0f766e,#14b8a6);">
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
-          </svg>
-        </button>
-        <p id="micStatus" class="text-xs text-[var(--ink-soft)] mt-3">Tap and say: "120 over 80, pulse 72"</p>
-        <p id="voiceResult" class="hidden mt-3 text-sm bg-[var(--accent-soft)] text-[var(--accent)] rounded-xl px-3 py-2"></p>
-      </div>
-
-      <div class="flex items-center gap-3 text-[var(--ink-soft)]">
-        <div class="flex-1 h-px bg-[var(--line)]"></div>
-        <span class="text-xs uppercase tracking-wider">or enter manually</span>
-        <div class="flex-1 h-px bg-[var(--line)]"></div>
-      </div>
-
-      <!-- Inputs -->
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="text-xs font-medium text-[var(--ink-soft)]">Systolic <span class="opacity-60">upper</span></label>
-          <input id="inSys" type="number" inputmode="numeric" placeholder="120" class="mt-1 w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-lg font-semibold"/>
-        </div>
-        <div>
-          <label class="text-xs font-medium text-[var(--ink-soft)]">Diastolic <span class="opacity-60">lower</span></label>
-          <input id="inDia" type="number" inputmode="numeric" placeholder="80" class="mt-1 w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-lg font-semibold"/>
-        </div>
-      </div>
-      <div>
-        <label class="text-xs font-medium text-[var(--ink-soft)]">Heart rate <span class="opacity-60">bpm</span></label>
-        <input id="inHr" type="number" inputmode="numeric" placeholder="72" class="mt-1 w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-lg font-semibold"/>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="text-xs font-medium text-[var(--ink-soft)]">Date</label>
-          <input id="inDate" type="date" class="mt-1 w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-sm"/>
-        </div>
-        <div>
-          <label class="text-xs font-medium text-[var(--ink-soft)]">Time</label>
-          <select id="inTime" class="mt-1 w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-sm">
-            <option value="">Pick a time…</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Circumstances -->
-      <div class="card p-5 space-y-4">
-        <p class="font-display text-lg font-semibold">A few quick questions</p>
-        <p class="text-xs text-[var(--ink-soft)] -mt-2">Helps you spot patterns over time. All optional.</p>
-
-        <!-- Stress -->
-        <div>
-          <p class="text-sm font-medium mb-2">Stress level</p>
-          <div class="flex gap-2" data-group="stress">
-            <button data-val="Calm" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">Calm</button>
-            <button data-val="Moderate" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">Moderate</button>
-            <button data-val="High" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">High</button>
-          </div>
-        </div>
-        <!-- Exercise -->
-        <div>
-          <p class="text-sm font-medium mb-2">Recent exercise (last 2h)?</p>
-          <div class="flex gap-2" data-group="exercise">
-            <button data-val="None" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">None</button>
-            <button data-val="Light" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">Light</button>
-            <button data-val="Intense" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">Intense</button>
-          </div>
-        </div>
-        <!-- Caffeine -->
-        <div>
-          <p class="text-sm font-medium mb-2">Caffeine in the last 2 hours?</p>
-          <div class="flex gap-2" data-group="caffeine">
-            <button data-val="No" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">No</button>
-            <button data-val="1 drink" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">1 drink</button>
-            <button data-val="2+ drinks" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">2+</button>
-          </div>
-        </div>
-        <!-- Nicotine -->
-        <div>
-          <p class="text-sm font-medium mb-2">Nicotine in the last hour?</p>
-          <div class="flex gap-2" data-group="nicotine">
-            <button data-val="No" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">No</button>
-            <button data-val="Yes" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">Yes</button>
-          </div>
-        </div>
-        <!-- Alcohol -->
-        <div>
-          <p class="text-sm font-medium mb-2">Alcohol in the last 12 hours?</p>
-          <div class="flex gap-2" data-group="alcohol">
-            <button data-val="No" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">No</button>
-            <button data-val="1 drink" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">1</button>
-            <button data-val="2+ drinks" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">2+</button>
-          </div>
-        </div>
-        <!-- Sleep -->
-        <div>
-          <p class="text-sm font-medium mb-2">Sleep quality last night</p>
-          <div class="flex gap-2" data-group="sleep">
-            <button data-val="Poor" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">Poor</button>
-            <button data-val="Okay" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">Okay</button>
-            <button data-val="Good" class="chip flex-1 py-2 rounded-xl border border-[var(--line)] text-sm">Good</button>
-          </div>
-        </div>
-        <!-- Activity -->
-        <div>
-          <p class="text-sm font-medium mb-2">Activity just before measuring</p>
-          <div class="flex flex-wrap gap-2" data-group="activity">
-            <button data-val="Resting" class="chip px-3 py-2 rounded-xl border border-[var(--line)] text-sm">Resting</button>
-            <button data-val="Walking" class="chip px-3 py-2 rounded-xl border border-[var(--line)] text-sm">Walking</button>
-            <button data-val="Working" class="chip px-3 py-2 rounded-xl border border-[var(--line)] text-sm">Working</button>
-            <button data-val="After meal" class="chip px-3 py-2 rounded-xl border border-[var(--line)] text-sm">After meal</button>
-            <button data-val="Just woke up" class="chip px-3 py-2 rounded-xl border border-[var(--line)] text-sm">Just woke up</button>
-            <button data-val="Before sleep" class="chip px-3 py-2 rounded-xl border border-[var(--line)] text-sm">Before sleep</button>
-          </div>
-        </div>
-        <!-- Symptoms -->
-        <div>
-          <p class="text-sm font-medium mb-2">Any symptoms?</p>
-          <div class="flex flex-wrap gap-2" data-group="symptoms">
-            <button data-val="None" class="chip px-3 py-2 rounded-xl border border-[var(--line)] text-sm">None</button>
-            <button data-val="Headache" class="chip px-3 py-2 rounded-xl border border-[var(--line)] text-sm">Headache</button>
-            <button data-val="Dizziness" class="chip px-3 py-2 rounded-xl border border-[var(--line)] text-sm">Dizziness</button>
-            <button data-val="Chest tightness" class="chip px-3 py-2 rounded-xl border border-[var(--line)] text-sm">Chest tightness</button>
-            <button data-val="Fatigue" class="chip px-3 py-2 rounded-xl border border-[var(--line)] text-sm">Fatigue</button>
-            <button data-val="Palpitations" class="chip px-3 py-2 rounded-xl border border-[var(--line)] text-sm">Palpitations</button>
-          </div>
-        </div>
-        <!-- Notes -->
-        <div>
-          <p class="text-sm font-medium mb-2">Notes</p>
-          <textarea id="inNotes" rows="3" placeholder="Anything worth remembering…" class="w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white focus:outline-none focus:ring-2 focus:ring-[var(--accent)] text-sm"></textarea>
-        </div>
-      </div>
-
-      <button id="saveBtn" onclick="saveMeasurement()" class="pill-btn w-full py-4 rounded-2xl text-white font-semibold text-base"
-        style="background:linear-gradient(135deg,#0f766e,#14b8a6); box-shadow:0 12px 24px -10px rgba(15,118,110,.5);">
-        Save measurement
-      </button>
-      <p class="text-[11px] text-center text-[var(--ink-soft)] leading-relaxed">
-        Pulse Journal is for personal tracking only and does not diagnose medical conditions. Always consult a healthcare professional for advice.
-      </p>
-    </div>
-  </div>
+<div id="addStep2" class="hidden space-y-4">
+<p class="text-[13px] text-muted leading-relaxed">A few quick questions help you understand what may influence your readings. All optional.</p>
+<div class="card p-4"><div class="text-[13px] font-bold mb-2">Stress level right now</div><div class="flex gap-1.5" id="gStress"></div><div class="text-[11px] text-muted font-medium mt-1.5">1 calm → 5 very stressed</div></div>
+<div class="card p-4"><div class="text-[13px] font-bold mb-2">Recent exercise</div><div class="flex flex-wrap gap-1.5" id="gExercise"></div><div id="exWhenWrap" class="hidden mt-2"><div class="text-[12px] font-bold text-muted mb-1.5">How long ago?</div><div class="flex flex-wrap gap-1.5" id="gExWhen"></div></div></div>
+<div class="card p-4"><div class="text-[13px] font-bold mb-2">Caffeine (coffee, tea, energy drinks)</div><div class="flex flex-wrap gap-1.5" id="gCaf"></div></div>
+<div class="grid grid-cols-2 gap-3">
+<div class="card p-4"><div class="text-[13px] font-bold mb-2">Nicotine</div><div class="flex flex-wrap gap-1.5" id="gNic"></div></div>
+<div class="card p-4"><div class="text-[13px] font-bold mb-2">Alcohol</div><div class="flex flex-wrap gap-1.5" id="gAlc"></div></div>
+</div>
+<div class="card p-4"><div class="text-[13px] font-bold mb-2">Last night's sleep</div><div class="flex flex-wrap gap-1.5" id="gSleep"></div><div class="flex items-center gap-3 mt-3"><input id="inSleepH" type="range" min="0" max="12" step="0.5" value="7.5" class="flex-1" oninput="updSleepH(this.value)"><span id="sleepHVal" class="text-[13px] font-bold bg-[#F1F4F2] px-2.5 py-1 rounded-lg whitespace-nowrap">7.5 h</span></div></div>
+<div class="card p-4"><div class="text-[13px] font-bold mb-2">What were you doing just before?</div><div class="flex flex-wrap gap-1.5" id="gAct"></div></div>
+<div class="card p-4"><div class="text-[13px] font-bold mb-1">Any symptoms? <span class="font-medium text-muted">(tap all that apply)</span></div><div class="flex flex-wrap gap-1.5" id="gSym"></div></div>
+<div class="card p-4"><div class="text-[13px] font-bold mb-2">Notes <span class="font-medium text-muted">— anything else?</span></div><textarea id="inNotes" rows="3" placeholder="e.g. measured after resting 5 min, felt calm, left arm…" class="w-full bg-[#F1F4F2] rounded-xl p-3 text-[14px] outline-none border-none"></textarea></div>
 </div>
 
-<!-- ====================== CONFIRM VOICE MODAL ====================== -->
-<div id="confirmVoice" class="hidden fixed inset-0 z-[60] flex items-center justify-center px-6">
-  <div class="absolute inset-0 bg-black/50 overlay-enter" onclick="cancelVoiceConfirm()"></div>
-  <div class="relative card w-full max-w-sm p-6 fade-in">
-    <h3 class="font-display text-xl font-semibold">Confirm voice reading</h3>
-    <p class="text-sm text-[var(--ink-soft)] mt-1">Did we hear you correctly?</p>
-    <div id="voiceConfirmBody" class="mt-4 text-lg font-semibold"></div>
-    <div class="mt-5 grid grid-cols-2 gap-3">
-      <button onclick="cancelVoiceConfirm()" class="py-3 rounded-2xl bg-[var(--bg-soft)] font-medium text-sm">Try again</button>
-      <button onclick="acceptVoiceConfirm()" class="py-3 rounded-2xl text-white font-medium text-sm" style="background:linear-gradient(135deg,#0f766e,#14b8a6);">Looks right</button>
-    </div>
-  </div>
+<div id="addStep3" class="hidden space-y-3">
+<p class="text-[13px] text-muted">Please review before saving. You can go back to edit anything.</p>
+<div id="reviewBox" class="space-y-3"></div>
+<p class="text-[11px] text-muted leading-relaxed bg-[#EFF3F0] rounded-xl p-3">This journal is for personal tracking and general information only. It is not a medical device and does not diagnose conditions.</p>
+</div>
+</div>
+<div class="p-4 bg-white border-t border-black/5 flex gap-2">
+<button id="addBack" onclick="addNav(-1)" class="btn-ghost flex-1 py-3.5 text-[14px] hidden">← Back</button>
+<button id="addNext" onclick="addNav(1)" class="btn-primary flex-[2] py-3.5 text-[15px]">Continue →</button>
+</div>
+</div>
 </div>
 
-<!-- ====================== FEEDBACK MODAL ====================== -->
-<div id="feedbackModal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
-  <div class="absolute inset-0 bg-black/50 overlay-enter" onclick="closeFeedback()"></div>
-  <div class="relative w-full max-w-md bg-[var(--bg)] rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto no-scrollbar sheet-enter">
-    <div class="sticky top-0 bg-[var(--bg)] px-6 pt-5 pb-3 z-10">
-      <div class="w-10 h-1.5 bg-[var(--line)] rounded-full mx-auto mb-4 sm:hidden"></div>
-      <div class="flex items-center justify-between">
-        <h3 class="font-display text-2xl font-semibold">Saved</h3>
-        <button onclick="closeFeedback()" class="w-9 h-9 rounded-full bg-white border border-[var(--line)] flex items-center justify-center">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="px-6 pb-6 space-y-4">
-      <div id="feedbackContent"></div>
-      <div class="card p-4 bg-[var(--warn-soft)] border-[#fde68a]">
-        <p class="text-xs text-[var(--warn)] font-semibold uppercase tracking-wider">Reminder</p>
-        <p class="text-sm mt-1 text-[var(--ink)]">This is general information only. It is not a diagnosis and does not replace professional healthcare advice.</p>
-      </div>
-      <div class="card p-5">
-        <p class="font-display text-lg font-semibold">Would you like to measure again?</p>
-        <p class="text-xs text-[var(--ink-soft)] mt-1">A second reading a minute apart can be useful.</p>
-        <div class="mt-3 grid grid-cols-2 gap-3">
-          <button onclick="closeFeedback(); openAddMeasurement();" class="py-3 rounded-2xl text-white font-medium text-sm" style="background:linear-gradient(135deg,#0f766e,#14b8a6);">Measure again</button>
-          <button onclick="askReminder()" class="py-3 rounded-2xl bg-white border border-[var(--line)] font-medium text-sm">Remind me later</button>
-        </div>
-      </div>
-      <button onclick="closeFeedback()" class="w-full py-3 rounded-2xl bg-[var(--bg-soft)] font-medium text-sm">Done</button>
-    </div>
-  </div>
+<!-- VOICE -->
+<div id="voiceOverlay" class="sheet-wrap hidden" style="z-index:90">
+<div class="backdrop" onclick="closeVoice()"></div>
+<div class="sheet" style="max-width:480px">
+<div class="p-6 bg-white rounded-t-[28px] overflow-y-auto" style="max-height:88vh">
+<div class="flex items-center justify-between"><div class="font-display font-bold text-[18px]">🎙 Record by Voice</div><button onclick="closeVoice()" class="w-9 h-9 rounded-xl bg-[#F1F4F2] font-bold border-none cursor-pointer">✕</button></div>
+<p class="text-[12px] text-muted mt-1">Dictate your reading, then confirm before saving.</p>
+<div class="text-center">
+<button id="micBtn" onclick="toggleListen()" class="mx-auto mt-5 w-24 h-24 rounded-full text-white flex items-center justify-center border-none cursor-pointer" style="background:linear-gradient(135deg,#0E9384,#0A6B5E)">
+<svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0M12 19v3"/></svg>
+</button>
+</div>
+<div id="micState" class="text-[13px] font-bold mt-3 text-tealdark text-center">Tap the microphone and speak</div>
+<div id="voiceWave" class="wave mt-2 opacity-40"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+<div class="bg-[#F6F7F3] border border-black/5 rounded-2xl p-3 mt-3 text-left min-h-[64px]"><div class="text-[10px] font-bold uppercase tracking-widest text-muted">Heard</div><div id="voiceText" class="text-[14px] font-medium">—</div></div>
+<div id="voiceFallback" class="mt-2"><input id="voiceType" oninput="onVoiceType(this.value)" placeholder='Type what you would say, e.g. "122 over 78 pulse 70"' class="w-full bg-[#F1F4F2] rounded-xl px-3 py-2.5 text-[13px] outline-none border-none"><button onclick="demoVoice()" class="text-[12px] font-bold text-tealx mt-1.5 bg-transparent border-none cursor-pointer">Try a demo phrase →</button></div>
+<div class="mt-3 grid grid-cols-3 gap-2">
+<div class="vital-box p-2"><div class="text-[10px] font-bold text-muted text-center">SYS</div><input id="vSys" inputmode="numeric" class="w-full text-center font-display font-bold text-[24px] outline-none bg-transparent border-none" placeholder="—"></div>
+<div class="vital-box p-2"><div class="text-[10px] font-bold text-muted text-center">DIA</div><input id="vDia" inputmode="numeric" class="w-full text-center font-display font-bold text-[24px] outline-none bg-transparent border-none" placeholder="—"></div>
+<div class="vital-box p-2"><div class="text-[10px] font-bold text-muted text-center">PULSE</div><input id="vHr" inputmode="numeric" class="w-full text-center font-display font-bold text-[24px] outline-none bg-transparent border-none" placeholder="—"></div>
+</div>
+<div class="text-[11px] text-muted font-medium mt-2 text-center">Tip: try “120 over 80, heart rate 72” or “135 / 85, pulse 76”</div>
+<div class="flex gap-2 mt-4"><button onclick="closeVoice()" class="btn-ghost flex-1 py-3 text-[14px]">Cancel</button><button onclick="applyVoice()" class="btn-primary flex-[2] py-3 text-[14px]">✓ Confirm & use these values</button></div>
+<p class="text-[11px] text-muted mt-2 text-center">Nothing is saved until you review and tap Save.</p>
+</div>
+</div>
 </div>
 
-<!-- ====================== REMINDER MODAL ====================== -->
-<div id="reminderModal" class="hidden fixed inset-0 z-[60] flex items-end sm:items-center justify-center">
-  <div class="absolute inset-0 bg-black/50 overlay-enter" onclick="closeReminder()"></div>
-  <div class="relative w-full max-w-md bg-white rounded-t-3xl sm:rounded-3xl p-6 sheet-enter">
-    <div class="w-10 h-1.5 bg-[var(--line)] rounded-full mx-auto mb-4 sm:hidden"></div>
-    <h3 class="font-display text-2xl font-semibold">Personal reminder</h3>
-    <p id="reminderProfileLabel" class="text-sm text-[var(--ink-soft)] mt-1"></p>
-    <div class="mt-5 space-y-3">
-      <div>
-        <label class="text-xs font-medium text-[var(--ink-soft)]">Remind me in</label>
-        <select id="reminderDelay" class="mt-1 w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white text-sm">
-          <option value="15">15 minutes</option>
-          <option value="30">30 minutes</option>
-          <option value="60">1 hour</option>
-          <option value="120">2 hours</option>
-          <option value="480">8 hours</option>
-        </select>
-      </div>
-      <div>
-        <label class="text-xs font-medium text-[var(--ink-soft)]">Daily reminder time (optional)</label>
-        <select id="reminderDaily" class="mt-1 w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white text-sm">
-          <option value="">Off</option>
-        </select>
-      </div>
-    </div>
-    <button onclick="setReminder()" class="mt-5 w-full py-3 rounded-2xl text-white font-semibold text-sm" style="background:linear-gradient(135deg,#0f766e,#14b8a6);">Set reminder</button>
-    <button onclick="closeReminder()" class="mt-2 w-full py-3 rounded-2xl bg-[var(--bg-soft)] font-medium text-sm">Cancel</button>
-    <p class="text-[11px] text-[var(--ink-soft)] mt-3 text-center">Reminders work while this tab is open. They are saved per profile.</p>
-  </div>
+<!-- FEEDBACK -->
+<div id="feedbackSheet" class="sheet-wrap hidden" style="z-index:85">
+<div class="backdrop"></div>
+<div class="sheet"><div class="overflow-y-auto p-5 flex-1" style="max-height:88vh" id="feedbackBody"></div></div>
 </div>
 
-<!-- ====================== EDIT MODAL ====================== -->
-<div id="editSheet" class="hidden fixed inset-0 z-50 flex items-end sm:items-center justify-center">
-  <div class="absolute inset-0 bg-black/40 overlay-enter" onclick="closeEdit()"></div>
-  <div class="relative w-full max-w-md bg-[var(--bg)] rounded-t-3xl sm:rounded-3xl max-h-[92vh] overflow-y-auto no-scrollbar sheet-enter">
-    <div class="sticky top-0 bg-[var(--bg)] px-6 pt-5 pb-3 z-10">
-      <div class="w-10 h-1.5 bg-[var(--line)] rounded-full mx-auto mb-4 sm:hidden"></div>
-      <div class="flex items-center justify-between">
-        <h3 class="font-display text-2xl font-semibold">Edit measurement</h3>
-        <button onclick="closeEdit()" class="w-9 h-9 rounded-full bg-white border border-[var(--line)] flex items-center justify-center">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="px-6 pb-6 space-y-4">
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="text-xs font-medium text-[var(--ink-soft)]">Systolic</label>
-          <input id="edSys" type="number" class="mt-1 w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white text-lg font-semibold"/>
-        </div>
-        <div>
-          <label class="text-xs font-medium text-[var(--ink-soft)]">Diastolic</label>
-          <input id="edDia" type="number" class="mt-1 w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white text-lg font-semibold"/>
-        </div>
-      </div>
-      <div>
-        <label class="text-xs font-medium text-[var(--ink-soft)]">Heart rate</label>
-        <input id="edHr" type="number" class="mt-1 w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white text-lg font-semibold"/>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <div>
-          <label class="text-xs font-medium text-[var(--ink-soft)]">Date</label>
-          <input id="edDate" type="date" class="mt-1 w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white text-sm"/>
-        </div>
-        <div>
-          <label class="text-xs font-medium text-[var(--ink-soft)]">Time</label>
-          <select id="edTime" class="mt-1 w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white text-sm"></select>
-        </div>
-      </div>
-      <div>
-        <label class="text-xs font-medium text-[var(--ink-soft)]">Notes</label>
-        <textarea id="edNotes" rows="2" class="mt-1 w-full px-4 py-3 rounded-2xl border border-[var(--line)] bg-white text-sm"></textarea>
-      </div>
-      <div class="grid grid-cols-2 gap-3">
-        <button onclick="deleteMeasurement()" class="py-3 rounded-2xl border border-[var(--danger-soft)] text-[var(--danger)] font-medium text-sm bg-white">Delete</button>
-        <button onclick="updateMeasurement()" class="py-3 rounded-2xl text-white font-semibold text-sm" style="background:linear-gradient(135deg,#0f766e,#14b8a6);">Save changes</button>
-      </div>
-    </div>
-  </div>
+<!-- REMINDERS -->
+<div id="reminderSheet" class="sheet-wrap hidden">
+<div class="backdrop" onclick="closeReminders()"></div>
+<div class="sheet">
+<div class="p-5 bg-white border-b border-black/5 rounded-t-[28px]">
+<div class="flex items-center justify-between"><div><div class="font-display font-bold text-[19px]">Reminders</div><div id="remProfileNote" class="text-[12px] text-muted">Personal reminders</div></div><button onclick="closeReminders()" class="w-9 h-9 rounded-xl bg-[#F1F4F2] font-bold border-none cursor-pointer">✕</button></div>
+</div>
+<div class="overflow-y-auto p-5 flex-1 space-y-3" style="max-height:62vh">
+<div id="remList" class="space-y-2"></div>
+<div class="card p-4">
+<div class="font-bold text-[14px] mb-2">+ New reminder</div>
+<div class="grid grid-cols-3 gap-2">
+<select id="remHour" class="bg-[#F1F4F2] rounded-xl px-2 py-2.5 text-[14px] font-bold border-none"></select>
+<select id="remMin" class="bg-[#F1F4F2] rounded-xl px-2 py-2.5 text-[14px] font-bold border-none"></select>
+<div class="grid grid-cols-2 gap-1 bg-[#F1F4F2] rounded-xl p-1"><button id="remAM" onclick="setRemAmpm('AM')" class="text-[12px] font-bold rounded-lg py-1.5 bg-[#152726] text-white border-none">AM</button><button id="remPM" onclick="setRemAmpm('PM')" class="text-[12px] font-bold rounded-lg py-1.5 text-muted bg-transparent border-none">PM</button></div>
+</div>
+<input id="remLabel" placeholder="Label, e.g. Morning check" class="w-full mt-2 bg-[#F1F4F2] rounded-xl px-3 py-2.5 text-[14px] outline-none border-none">
+<div class="flex gap-2 mt-2"><button onclick="quickRem('07:30','Morning check')" class="chip flex-1 text-center !text-[12px]">7:30 AM</button><button onclick="quickRem('21:00','Evening check')" class="chip flex-1 text-center !text-[12px]">9:00 PM</button></div>
+<button onclick="addReminder()" class="btn-primary w-full py-3 mt-2 text-[14px]">Save reminder</button>
+<button onclick="enableNotif()" class="w-full text-[12px] font-bold text-tealx mt-2 bg-transparent border-none cursor-pointer">Enable browser notifications</button>
+</div>
+<p class="text-[11px] text-muted text-center">Reminders are personal to each profile and checked while this page is open.</p>
+</div>
+</div>
 </div>
 
-<!-- Toast -->
-<div id="toast" class="hidden fixed top-5 left-1/2 -translate-x-1/2 z-[70] px-5 py-3 rounded-full bg-[var(--ink)] text-white text-sm font-medium shadow-xl"></div>
+<!-- SWITCH -->
+<div id="switchSheet" class="sheet-wrap hidden">
+<div class="backdrop" onclick="closeSwitch()"></div>
+<div class="sheet" style="max-width:480px">
+<div class="p-6 bg-white rounded-t-[28px]">
+<div class="flex items-center justify-between mb-1"><div class="font-display font-bold text-[19px]">Switch profile</div><button onclick="closeSwitch()" class="w-9 h-9 rounded-xl bg-[#F1F4F2] font-bold border-none cursor-pointer">✕</button></div>
+<p class="text-[13px] text-muted mb-4">Each journal is private. Switching never mixes data.</p>
+<div class="grid grid-cols-2 gap-3">
+<button id="swK" onclick="selectProfile('kasper');closeSwitch();" class="rounded-3xl p-4 border-2 text-left bg-[#F1F7F5] cursor-pointer"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-display font-bold text-xl mb-2" style="background:linear-gradient(135deg,#0E9384,#0A5A4F)">K</div><div class="font-display font-bold">Kasper</div><div id="swCountK" class="text-[12px] text-muted">—</div></button>
+<button id="swE" onclick="selectProfile('elle');closeSwitch();" class="rounded-3xl p-4 border-2 text-left bg-[#FFF4F2] cursor-pointer"><div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white font-display font-bold text-xl mb-2" style="background:linear-gradient(135deg,#E88B7A,#C94A5A)">E</div><div class="font-display font-bold">Elle</div><div id="swCountE" class="text-[12px] text-muted">—</div></button>
+</div>
+<div class="flex gap-2 mt-4"><button onclick="backToGate()" class="btn-ghost flex-1 py-3 text-[13px]">Show welcome screen</button><button onclick="clearCurrent()" class="flex-1 py-3 text-[13px] font-bold text-[#B4232A] bg-[#FFE9E9] rounded-[18px] border-none cursor-pointer">Clear my data…</button></div>
+<p class="text-[11px] text-muted text-center mt-3">Data is stored only on this device.</p>
+</div>
+</div>
+</div>
+
+<!-- DETAIL -->
+<div id="detailSheet" class="sheet-wrap hidden">
+<div class="backdrop" onclick="closeDetail()"></div>
+<div class="sheet"><div class="overflow-y-auto p-5 flex-1" style="max-height:88vh" id="detailBody"></div></div>
+</div>
+
+<div id="toastRoot" class="fixed bottom-28 left-1/2 -translate-x-1/2 z-[120] flex flex-col gap-2 items-center w-full max-w-[400px] px-4 pointer-events-none"></div>
 
 <script>
-/* ============================================================
-   PULSE JOURNAL — Blood pressure & heart rate tracker
-   Two fully separated profiles: Kasper & Elle
-   ============================================================ */
-
-const STORAGE_KEY = 'pulseJournal.v1';
-const PROFILES = ['Kasper','Elle'];
-
-let state = {
-  active: null,
-  data: { Kasper: [], Elle: [] },
-  reminders: { Kasper: null, Elle: null },
-  dailyReminders: { Kasper: null, Elle: null },
-  currentPeriod: '7d',
-  trendsPeriod: '30d',
-  currentPage: 'overview',
-  editingId: null,
-  selectedCircumstances: {},
-  voiceRecognition: null,
-  voiceListening: false,
-  pendingVoice: null,
+/* ============ STORE — CLEAN SLATE ============ */
+const LS_KEY='pulseJournalCleanV1';
+const PROFILES={
+kasper:{name:'Kasper',short:'K',grad:'linear-gradient(135deg,#0E9384,#0A5A4F)',color:'#0E9384'},
+elle:{name:'Elle',short:'E',grad:'linear-gradient(135deg,#E88B7A,#C94A5A)',color:'#E85D6A'}
 };
-
-/* ---------- Persistence ---------- */
-function loadState(){
-  try{
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if(raw){ const parsed = JSON.parse(raw); state.data = parsed.data || {Kasper:[],Elle:[]}; state.reminders = parsed.reminders || {Kasper:null,Elle:null}; state.dailyReminders = parsed.dailyReminders || {Kasper:null,Elle:null}; }
-  }catch(e){ console.warn('Load failed', e); }
-  // Seed gentle demo data on first run for both profiles so charts aren't empty
-  if(state.data.Kasper.length===0) state.data.Kasper = seedDemo('Kasper');
-  if(state.data.Elle.length===0) state.data.Elle = seedDemo('Elle');
+let DB=null,currentProfile=null,overviewPeriod='7d',trendsPeriod='30d',dailyDate=todayStrF(),histRange='all',histQ='',activeTab='overview';
+let charts={},editingId=null,addStep=1,remAmpm='AM',addAmpm='AM',lastSaved=null,recognition=null,listening=false;
+let draft=defaultDraft();
+function defaultDraft(){return{sys:'',dia:'',hr:'',date:todayStrF(),hour:'7',minute:'30',ampm:'AM',stress:2,exercise:'none',exerciseWhen:'within30',caffeine:'none',nicotine:'no',alcohol:'no',sleep:'good',sleepHours:7.5,activity:'rested',symptoms:['none'],notes:''}}
+function pad(n){return String(n).padStart(2,'0')}
+function todayStrF(){const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function loadDB(){try{const r=localStorage.getItem(LS_KEY);if(r){const p=JSON.parse(r);if(p&&p.kasper&&p.elle)return p}}catch(e){}return null}
+function saveDB(){localStorage.setItem(LS_KEY,JSON.stringify(DB))}
+function initDB(){
+DB=loadDB();
+if(!DB){DB={kasper:{measurements:[],reminders:[]},elle:{measurements:[],reminders:[]}};saveDB();}
+if(!DB.kasper.measurements)DB.kasper.measurements=[];
+if(!DB.elle.measurements)DB.elle.measurements=[];
+if(!DB.kasper.reminders)DB.kasper.reminders=[];
+if(!DB.elle.reminders)DB.elle.reminders=[];
 }
-function saveState(){ localStorage.setItem(STORAGE_KEY, JSON.stringify({data:state.data, reminders:state.reminders, dailyReminders:state.dailyReminders})); }
-
-function seedDemo(name){
-  const arr=[];
-  const today=new Date();
-  const baseSys = name==='Kasper'?122:115;
-  const baseDia = name==='Kasper'?78:73;
-  const baseHr = name==='Kasper'?71:68;
-  for(let i=29;i>=0;i--){
-    const d=new Date(today); d.setDate(d.getDate()-i);
-    const times=['07:30','12:15','19:45'];
-    times.forEach((t,ti)=>{
-      if(Math.random()>0.25 || (i<7)){
-        const sys = baseSys + Math.round((Math.sin(i/3+ti)*5) + (Math.random()*8-4));
-        const dia = baseDia + Math.round((Math.cos(i/4+ti)*3) + (Math.random()*5-2));
-        const hr  = baseHr + Math.round((Math.sin(i/5)*4) + (Math.random()*8-4));
-        arr.push({
-          id: cryptoId(),
-          date: d.toISOString().slice(0,10),
-          time: t,
-          sys, dia, hr,
-          stress: ['Calm','Moderate','High'][Math.floor(Math.random()*3)],
-          exercise: ['None','Light','Intense'][Math.floor(Math.random()*3)],
-          caffeine: ['No','1 drink','2+ drinks'][Math.floor(Math.random()*3)],
-          nicotine: Math.random()>0.8?'Yes':'No',
-          alcohol: Math.random()>0.85?'1 drink':'No',
-          sleep: ['Poor','Okay','Good'][Math.floor(Math.random()*3)],
-          activity: ['Resting','Walking','Working','After meal','Just woke up','Before sleep'][Math.floor(Math.random()*6)],
-          symptoms: Math.random()>0.7?['Headache','Fatigue'][Math.floor(Math.random()*2)]:['None'],
-          notes:''
-        });
-      }
-    });
-  }
-  return arr.sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time));
-}
-function cryptoId(){ return 'm_'+Math.random().toString(36).slice(2,11); }
-
-/* ---------- Time helpers ---------- */
-function pad(n){ return String(n).padStart(2,'0'); }
-function todayStr(){ const d=new Date(); return d.toISOString().slice(0,10); }
-function buildTimeOptions(){
-  const opts=[];
-  for(let h=0; h<24; h++){
-    [0,15,30,45].forEach(m=>{
-      const t = `${pad(h)}:${pad(m)}`;
-      const label12 = formatTime12(t);
-      opts.push(`<option value="${t}">${label12}</option>`);
-    });
-  }
-  return opts.join('');
-}
-function formatTime12(t){
-  const [h,m]=t.split(':').map(Number);
-  const ampm = h>=12?'PM':'AM';
-  const hh = h%12===0?12:h%12;
-  return `${hh}:${pad(m)} ${ampm}`;
-}
-function prettyDate(iso){
-  const d=new Date(iso+'T00:00:00');
-  return d.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'});
-}
-function prettyDateTime(iso,time){
-  const d=new Date(iso+'T'+time+':00');
-  return d.toLocaleDateString(undefined,{weekday:'short', month:'short', day:'numeric'})+' · '+formatTime12(time);
-}
-
-/* ---------- Profile gate ---------- */
-function selectProfile(p){
-  state.active = p;
-  document.getElementById('profileGate').classList.add('hidden');
-  document.getElementById('app').classList.remove('hidden');
-  const avatar = document.getElementById('avatar');
-  avatar.textContent = p[0];
-  if(p==='Kasper'){ avatar.className='w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold switch-kasper'; }
-  else{ avatar.className='w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold switch-elle'; }
-  document.getElementById('profileName').textContent = p;
-  closeSwitchProfile();
-  navTo('overview');
-  toast(`Welcome back, ${p}`);
-}
-
-function openSwitchProfile(){
-  const m = document.getElementById('switchModal');
-  m.classList.remove('hidden');
-  // meta
-  ['Kasper','Elle'].forEach(p=>{
-    const arr = state.data[p];
-    const meta = document.getElementById('switch'+p+'Meta');
-    const check = document.getElementById('switch'+p+'Check');
-    meta.textContent = arr.length===0?'No measurements yet':`${arr.length} measurements · latest ${latestFor(p)?prettyDateTime(latestFor(p).date,latestFor(p).time):'—'}`;
-    if(state.active===p){ check.classList.remove('hidden'); check.innerHTML='<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'; document.getElementById('switch'+p).style.borderColor='var(--accent)'; }
-    else { check.classList.add('hidden'); document.getElementById('switch'+p).style.borderColor='var(--line)'; }
-  });
-}
-function closeSwitchProfile(){ document.getElementById('switchModal').classList.add('hidden'); }
-
-/* ---------- Navigation ---------- */
-function navTo(page){
-  state.currentPage = page;
-  ['overview','daily','trends','history'].forEach(p=>{
-    const el = document.getElementById('nav'+p.charAt(0).toUpperCase()+p.slice(1));
-    if(p===page){ el.classList.add('nav-active'); el.classList.remove('text-[var(--ink-soft)]'); }
-    else { el.classList.remove('nav-active'); el.classList.add('text-[var(--ink-soft)]'); }
-  });
-  const container = document.getElementById('pageContainer');
-  container.innerHTML = '';
-  container.classList.remove('fade-in'); void container.offsetWidth; container.classList.add('fade-in');
-  if(page==='overview') renderOverview();
-  else if(page==='daily') renderDaily();
-  else if(page==='trends') renderTrends();
-  else if(page==='history') renderHistory();
-}
-
-/* ---------- Data helpers ---------- */
-function measurements(){ return state.data[state.active]; }
-function latestFor(p){ const arr=state.data[p]; if(!arr||arr.length===0) return null; return arr[arr.length-1]; }
-function periodFilter(arr, period){
-  if(period==='today'){ const t=todayStr(); return arr.filter(m=>m.date===t); }
-  if(period==='all') return arr.slice();
-  const days = period==='7d'?7: period==='30d'?30: period==='90d'?90: 7;
-  const cutoff = new Date(); cutoff.setHours(0,0,0,0); cutoff.setDate(cutoff.getDate()-days+1);
-  return arr.filter(m=> new Date(m.date+'T00:00:00') >= cutoff);
-}
-function avg(nums){ if(!nums.length) return 0; return Math.round(nums.reduce((a,b)=>a+b,0)/nums.length); }
-
-/* ---------- Interpretation ---------- */
-function bpCategory(sys,dia){
-  if(sys>=180 || dia>=120) return {label:'Very high', tone:'danger', text:'This reading is in a very high range. Consider resting a few minutes and re-measuring. If you feel unwell, contact a healthcare professional promptly.'};
-  if(sys>=140 || dia>=90) return {label:'High', tone:'warn', text:'This reading is in the high range. Keep logging, and consider discussing patterns with your healthcare professional.'};
-  if(sys>=130 || dia>=85) return {label:'Elevated', tone:'warn', text:'Slightly above the typical target range. Worth tracking alongside lifestyle factors.'};
-  if(sys>=120 || dia>=80) return {label:'Normal-high', tone:'neutral', text:'Within a common range. Continue your routine and keep logging.'};
-  if(sys>=90 && dia>=60) return {label:'Normal', tone:'good', text:'Within a typical healthy range. Keep up your routine.'};
-  if(sys<90 || dia<60) return {label:'Low', tone:'warn', text:'On the lower side. If you feel dizzy or faint, sit down and consider talking to a healthcare professional.'};
-  return {label:'Normal', tone:'good', text:'Within a typical range.'};
-}
-function hrCategory(hr){
-  if(hr>110) return {label:'High', tone:'warn', text:'Heart rate is higher than typical at rest. Caffeine, stress, or recent activity can raise it.'};
-  if(hr<50) return {label:'Low', tone:'warn', text:'Heart rate is lower than typical at rest. Common in very fit people, but worth noting if you feel unwell.'};
-  if(hr>=60 && hr<=100) return {label:'Typical', tone:'good', text:'Within a typical resting range.'};
-  return {label:'Slightly off', tone:'neutral', text:'Just outside the typical resting range. Worth tracking over time.'};
-}
-function toneColor(tone){ return {good:'var(--accent)', warn:'var(--warn)', danger:'var(--danger)', neutral:'#6b7280'}[tone]; }
-function toneBg(tone){ return {good:'var(--accent-soft)', warn:'var(--warn-soft)', danger:'var(--danger-soft)', neutral:'#eef2f1'}[tone]; }
-
-function buildFeedback(m, comparison){
-  const bp = bpCategory(m.sys, m.dia);
-  const hr = hrCategory(m.hr);
-  let html = `
-    <div class="card p-5">
-      <div class="flex items-end gap-2">
-        <p class="font-display text-4xl font-semibold">${m.sys}<span class="text-[var(--ink-soft)] text-2xl">/${m.dia}</span></p>
-        <p class="text-sm text-[var(--ink-soft)] mb-1.5">mmHg</p>
-      </div>
-      <div class="mt-1 inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium" style="background:${toneBg(bp.tone)}; color:${toneColor(bp.tone)}">
-        <span class="w-1.5 h-1.5 rounded-full" style="background:${toneColor(bp.tone)}"></span>${bp.label}
-      </div>
-      <p class="text-sm mt-3 text-[var(--ink-soft)] leading-relaxed">${bp.text}</p>
-    </div>
-    <div class="card p-5">
-      <div class="flex items-end gap-2">
-        <p class="font-display text-4xl font-semibold">${m.hr}</p>
-        <p class="text-sm text-[var(--ink-soft)] mb-1.5">bpm</p>
-      </div>
-      <div class="mt-1 inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium" style="background:${toneBg(hr.tone)}; color:${toneColor(hr.tone)}">
-        <span class="w-1.5 h-1.5 rounded-full" style="background:${toneColor(hr.tone)}"></span>${hr.label}
-      </div>
-      <p class="text-sm mt-3 text-[var(--ink-soft)] leading-relaxed">${hr.text}</p>
-    </div>`;
-  if(comparison){
-    html += `
-    <div class="card p-5">
-      <p class="font-display text-lg font-semibold">Compared to your recent readings</p>
-      <div class="grid grid-cols-3 gap-3 mt-3 text-center">
-        <div><p class="text-xs text-[var(--ink-soft)]">Systolic</p><p class="font-semibold text-lg ${comparison.sysDelta>0?'text-[var(--warn)]':comparison.sysDelta<0?'text-[var(--accent)]':'text-[var(--ink)]'}">${comparison.sysDelta>0?'+':''}${comparison.sysDelta}</p></div>
-        <div><p class="text-xs text-[var(--ink-soft)]">Diastolic</p><p class="font-semibold text-lg ${comparison.diaDelta>0?'text-[var(--warn)]':comparison.diaDelta<0?'text-[var(--accent)]':'text-[var(--ink)]'}">${comparison.diaDelta>0?'+':''}${comparison.diaDelta}</p></div>
-        <div><p class="text-xs text-[var(--ink-soft)]">Heart rate</p><p class="font-semibold text-lg ${comparison.hrDelta>0?'text-[var(--warn)]':comparison.hrDelta<0?'text-[var(--accent)]':'text-[var(--ink)]'}">${comparison.hrDelta>0?'+':''}${comparison.hrDelta}</p></div>
-      </div>
-      <p class="text-xs text-[var(--ink-soft)] mt-3">vs. your last 7 readings average.</p>
-    </div>`;
-  }
-  // Factors
-  const factors=[];
-  if(m.stress==='High') factors.push('High stress');
-  if(m.exercise==='Intense') factors.push('Recent intense exercise');
-  if(m.caffeine==='2+ drinks') factors.push('Multiple caffeine drinks');
-  if(m.nicotine==='Yes') factors.push('Recent nicotine');
-  if(m.alcohol==='2+ drinks') factors.push('Recent alcohol');
-  if(m.sleep==='Poor') factors.push('Poor sleep last night');
-  if(m.symptoms && !m.symptoms.includes('None') && m.symptoms.length) factors.push('Symptoms noted: '+m.symptoms.filter(s=>s!=='None').join(', '));
-  if(factors.length){
-    html += `
-    <div class="card p-5">
-      <p class="font-display text-lg font-semibold">Factors that may have influenced this</p>
-      <div class="mt-3 flex flex-wrap gap-2">
-        ${factors.map(f=>`<span class="px-3 py-1.5 rounded-full text-xs font-medium bg-[var(--bg-soft)] border border-[var(--line)]">${f}</span>`).join('')}
-      </div>
-      <p class="text-xs text-[var(--ink-soft)] mt-3">These are common influences on short-term readings. They don't diagnose anything — they just give context.</p>
-    </div>`;
-  }
-  return html;
-}
-
-/* ---------- Add measurement ---------- */
-function openAddMeasurement(){
-  // reset
-  state.selectedCircumstances = {};
-  document.getElementById('inSys').value='';
-  document.getElementById('inDia').value='';
-  document.getElementById('inHr').value='';
-  document.getElementById('inDate').value = todayStr();
-  document.getElementById('inNotes').value='';
-  document.getElementById('voiceResult').classList.add('hidden');
-  document.getElementById('addProfileLabel').textContent = `Logging for ${state.active}`;
-  // reset chips
-  document.querySelectorAll('[data-group] .chip').forEach(c=>{
-    c.classList.remove('seg-active'); c.classList.remove('border-[var(--accent)]');
-    c.style.background=''; c.style.color=''; c.style.borderColor='';
-    c.classList.add('border-[var(--line)]');
-  });
-  document.getElementById('addSheet').classList.remove('hidden');
-}
-function closeAddMeasurement(){ document.getElementById('addSheet').classList.add('hidden'); stopVoice(); }
-
-// Chip selection
-document.addEventListener('click', e=>{
-  const chip = e.target.closest('.chip');
-  if(!chip) return;
-  const group = chip.closest('[data-group]');
-  if(!group) return;
-  const g = group.getAttribute('data-group');
-  const isMulti = (g==='symptoms' || g==='activity');
-  if(isMulti){
-    if(chip.dataset.val==='None'){
-      group.querySelectorAll('.chip').forEach(c=>{ c.classList.remove('seg-active'); c.style.background=''; c.style.color=''; c.style.borderColor='var(--line)'; });
-      chip.classList.add('seg-active'); chip.style.background='var(--ink)'; chip.style.color='#fff'; chip.style.borderColor='var(--ink)';
-    } else {
-      // deselect "None"
-      group.querySelectorAll('.chip[data-val="None"]').forEach(c=>{ c.classList.remove('seg-active'); c.style.background=''; c.style.color=''; c.style.borderColor='var(--line)'; });
-      chip.classList.toggle('seg-active');
-      if(chip.classList.contains('seg-active')){ chip.style.background='var(--ink)'; chip.style.color='#fff'; chip.style.borderColor='var(--ink)'; }
-      else { chip.style.background=''; chip.style.color=''; chip.style.borderColor='var(--line)'; }
-    }
-  } else {
-    group.querySelectorAll('.chip').forEach(c=>{ c.classList.remove('seg-active'); c.style.background=''; c.style.color=''; c.style.borderColor='var(--line)'; });
-    chip.classList.add('seg-active'); chip.style.background='var(--ink)'; chip.style.color='#fff'; chip.style.borderColor='var(--ink)';
-  }
-});
-function readChips(){
-  const out={};
-  document.querySelectorAll('[data-group]').forEach(g=>{
-    const key=g.getAttribute('data-group');
-    const selected=[...g.querySelectorAll('.chip.seg-active')].map(c=>c.dataset.val);
-    if(key==='symptoms'||key==='activity') out[key]=selected.length?selected:['None'];
-    else out[key]=selected[0]||'';
-  });
-  return out;
-}
-
-/* ---------- Voice input ---------- */
-function toggleVoice(){
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if(!SR){ toast('Voice input not supported in this browser'); return; }
-  if(state.voiceListening){ stopVoice(); return; }
-  const rec = new SR();
-  rec.lang='en-US';
-  rec.continuous=false;
-  rec.interimResults=false;
-  state.voiceRecognition = rec;
-  rec.onstart = ()=>{
-    state.voiceListening = true;
-    const btn = document.getElementById('micBtn');
-    btn.classList.add('mic-listening');
-    btn.classList.remove('pulse-ring');
-    btn.style.background='linear-gradient(135deg,#b91c1c,#ef4444)';
-    document.getElementById('micStatus').textContent='Listening… say "120 over 80, pulse 72"';
-  };
-  rec.onresult = (ev)=>{
-    const text = ev.results[0][0].transcript.toLowerCase();
-    parseVoice(text);
-  };
-  rec.onerror = (e)=>{
-    stopVoice();
-    if(e.error==='no-speech') toast('No speech detected');
-    else if(e.error==='not-allowed') toast('Microphone permission needed');
-    else toast('Voice error: '+e.error);
-  };
-  rec.onend = ()=>{ stopVoice(); };
-  rec.start();
-}
-function stopVoice(){
-  if(state.voiceRecognition){ try{ state.voiceRecognition.stop(); }catch(e){} }
-  state.voiceListening = false;
-  const btn = document.getElementById('micBtn');
-  btn.classList.remove('mic-listening');
-  btn.classList.add('pulse-ring');
-  btn.style.background='linear-gradient(135deg,#0f766e,#14b8a6)';
-  document.getElementById('micStatus').textContent='Tap and say: "120 over 80, pulse 72"';
-}
-function parseVoice(text){
-  // patterns: 120 over 80, pulse 72  / 120 by 80 heart 72 / 120 80 72
-  const sysM = text.match(/(\d{2,3})\s*(?:over|by|slash|on|\/)?\s*(\d{2,3})/);
-  let sys=null, dia=null, hr=null;
-  if(sysM){ sys=+sysM[1]; dia=+sysM[2]; }
-  const hrM = text.match(/(?:pulse|heart(?:\s*rate)?|beats?|bpm)\s*(?:of|is|:)?\s*(\d{2,3})/);
-  if(hrM) hr=+hrM[1];
-  else { const n = text.match(/(\d{2,3})/g); if(n && n.length>=3) hr=+n[2]; }
-  if(sys && dia){
-    state.pendingVoice = {sys,dia,hr};
-    const body = document.getElementById('voiceConfirmBody');
-    body.innerHTML = `<p>${sys}<span class="text-[var(--ink-soft)]">/${dia}</span> <span class="text-sm font-normal text-[var(--ink-soft)]">mmHg</span>${hr?` &nbsp;·&nbsp; ${hr} <span class="text-sm font-normal text-[var(--ink-soft)]">bpm</span>`:''}</p>`;
-    document.getElementById('confirmVoice').classList.remove('hidden');
-    document.getElementById('voiceResult').textContent = `"${text}" → ${sys}/${dia}${hr?' · '+hr+' bpm':''}`;
-    document.getElementById('voiceResult').classList.remove('hidden');
-  } else {
-    toast('Could not catch that. Try "120 over 80, pulse 72"');
-  }
-}
-function acceptVoiceConfirm(){
-  if(state.pendingVoice){
-    document.getElementById('inSys').value = state.pendingVoice.sys;
-    document.getElementById('inDia').value = state.pendingVoice.dia;
-    if(state.pendingVoice.hr) document.getElementById('inHr').value = state.pendingVoice.hr;
-  }
-  cancelVoiceConfirm();
-}
-function cancelVoiceConfirm(){ document.getElementById('confirmVoice').classList.add('hidden'); state.pendingVoice=null; }
-
-/* ---------- Save ---------- */
-function saveMeasurement(){
-  const sys = parseInt(document.getElementById('inSys').value);
-  const dia = parseInt(document.getElementById('inDia').value);
-  const hr = parseInt(document.getElementById('inHr').value);
-  const date = document.getElementById('inDate').value;
-  const time = document.getElementById('inTime').value;
-  if(!sys||!dia||!hr){ toast('Please enter systolic, diastolic and heart rate'); return; }
-  if(!date||!time){ toast('Please choose date and time'); return; }
-  if(sys<50||sys>250||dia<30||dia>200||hr<30||hr>220){ toast('Those numbers seem off — double check'); return; }
-  const chips = readChips();
-  const m = {
-    id: cryptoId(),
-    date, time, sys, dia, hr,
-    stress: chips.stress||'',
-    exercise: chips.exercise||'',
-    caffeine: chips.caffeine||'',
-    nicotine: chips.nicotine||'',
-    alcohol: chips.alcohol||'',
-    sleep: chips.sleep||'',
-    activity: chips.activity||['None'],
-    symptoms: chips.symptoms||['None'],
-    notes: document.getElementById('inNotes').value.trim()
-  };
-  state.data[state.active].push(m);
-  state.data[state.active].sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time));
-  saveState();
-  closeAddMeasurement();
-  // comparison
-  const recent = state.data[state.active].slice(-8,-1);
-  let comparison=null;
-  if(recent.length){
-    comparison = {
-      sysDelta: m.sys - avg(recent.map(x=>x.sys)),
-      diaDelta: m.dia - avg(recent.map(x=>x.dia)),
-      hrDelta:  m.hr  - avg(recent.map(x=>x.hr)),
-    };
-  }
-  document.getElementById('feedbackContent').innerHTML = buildFeedback(m, comparison);
-  document.getElementById('feedbackModal').classList.remove('hidden');
-  navTo(state.currentPage);
-}
-
-/* ---------- Feedback ---------- */
-function closeFeedback(){ document.getElementById('feedbackModal').classList.add('hidden'); }
-
-/* ---------- Reminders ---------- */
-let reminderTimer=null;
-function askReminder(){ closeFeedback(); document.getElementById('reminderProfileLabel').textContent = `For ${state.active}`; document.getElementById('reminderModal').classList.remove('hidden'); }
-function closeReminder(){ document.getElementById('reminderModal').classList.add('hidden'); }
-function setReminder(){
-  const delay = parseInt(document.getElementById('reminderDelay').value);
-  const daily = document.getElementById('reminderDaily').value;
-  state.reminders[state.active] = Date.now()+delay*60*1000;
-  if(daily) state.dailyReminders[state.active]=daily;
-  saveState();
-  closeReminder();
-  toast(`Reminder set for ${state.active} in ${delay} min`);
-  scheduleReminderCheck();
-}
-function scheduleReminderCheck(){
-  if(reminderTimer) clearInterval(reminderTimer);
-  reminderTimer = setInterval(()=>{
-    ['Kasper','Elle'].forEach(p=>{
-      if(state.reminders[p] && Date.now()>=state.reminders[p]){
-        toast(`${p}: time to measure your blood pressure`);
-        state.reminders[p]=null; saveState();
-        if(state.active===p) navTo('overview');
-      }
-      // daily reminder
-      if(state.dailyReminders[p]){
-        const now=new Date();
-        const cur = pad(now.getHours())+':'+pad(now.getMinutes());
-        if(cur===state.dailyReminders[p]){
-          toast(`${p}: daily measurement reminder`);
-          state.dailyReminders[p]='triggered'; // avoid spamming; will reset on next set
-          setTimeout(()=>{ if(state.dailyReminders[p]==='triggered') state.dailyReminders[p]=null; }, 60000);
-        }
-      }
-    });
-  }, 15000);
-}
-
-/* ---------- Render: Overview ---------- */
-let charts = { bp:null, hr:null, trendBp:null, trendHr:null };
-
+/* ============ HELPERS ============ */
+function toast(msg){const el=document.createElement('div');el.className='toast pointer-events-auto bg-[#152726] text-white text-[13px] font-semibold px-4 py-2.5 rounded-2xl max-w-full text-center';el.style.boxShadow='0 24px 60px -18px rgba(10,50,45,.28)';el.textContent=msg;document.getElementById('toastRoot').appendChild(el);setTimeout(()=>{el.style.opacity='0';el.style.transition='.4s';setTimeout(()=>el.remove(),400)},2600)}
+function allM(){return DB[currentProfile].measurements.slice().sort((a,b)=>b.timestamp-a.timestamp)}
+function measAsc(list){return list.slice().sort((a,b)=>a.timestamp-b.timestamp)}
+function fmtTime12(ts){const d=new Date(ts);let h=d.getHours(),m=d.getMinutes();const ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+pad(m)+' '+ap}
+function fmtDateLong(ts){return new Date(ts).toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})}
+function fmtDateFull(ts){return new Date(ts).toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}
+function fmtShort(ts){const d=new Date(ts);return(d.getMonth()+1)+'/'+d.getDate()+' '+fmtTime12(ts).replace(' ','')}
+function timeAgo(ts){const s=(Date.now()-ts)/1000;if(s<60)return'just now';if(s<3600)return Math.floor(s/60)+' min ago';if(s<86400){return Math.floor(s/3600)+' hr ago'}const dd=Math.floor(s/86400);return dd===1?'yesterday':dd+' days ago'}
+function tsFromInputs(dateStr,h,m,ampm){let hh=parseInt(h)%12;if(ampm==='PM')hh+=12;const[y,mo,d]=dateStr.split('-').map(Number);return new Date(y,mo-1,d,parseInt(m,10)===60?0:parseInt(m,10),0,0,0).setHours(hh),new Date(y,mo-1,d,hh,parseInt(m,10),0,0).getTime()}
+function avg(arr){if(!arr.length)return null;return arr.reduce((a,b)=>a+b,0)/arr.length}
+function filterByPeriod(list,period){const now=Date.now(),day=86400000;if(period==='today'){const t=todayStrF();return list.filter(x=>x.date===t)}if(period==='7d')return list.filter(x=>x.timestamp>=now-7*day);if(period==='30d')return list.filter(x=>x.timestamp>=now-30*day);if(period==='3m')return list.filter(x=>x.timestamp>=now-90*day);return list}
+function esc(s){return String(s??'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function getBPInfo(sys,dia){
+if(sys>=180||dia>=120)return{label:'Much higher than typical',cls:'cat-s2',short:'Very high',desc:'This is in a range that general sources describe as very high. If you have concerning symptoms such as chest discomfort, shortness of breath, or vision changes, consider seeking prompt medical attention.'};
+if(sys>=140||dia>=90)return{label:'In commonly cited Stage 2 range',cls:'cat-s2',short:'Stage 2 range',desc:'General information sources often group readings at or above 140/90 in a higher range. This is not a diagnosis — patterns over time and a clinician’s guidance matter most.'};
+if(sys>=130||dia>=80)return{label:'In commonly cited Stage 1 range',cls:'cat-s1',short:'Stage 1 range',desc:'General sources often group 130–139 / 80–89 in this range. This is not a diagnosis. Rest, routine, and tracking patterns can be helpful to discuss with a clinician.'};
+if(sys>=120&&dia<80)return{label:'In commonly cited elevated range',cls:'cat-elev',short:'Elevated',desc:'With systolic 120–129 and diastolic below 80, general sources often use the word “elevated”. This is not a diagnosis — single readings vary a lot.'};
+if(sys<90||dia<60)return{label:'Lower than commonly cited typical',cls:'cat-low',short:'Lower',desc:'This is below ranges often cited as typical. If you feel dizzy or unwell, sit or lie down and consider contacting a health professional.'};
+return{label:'Within commonly cited typical range',cls:'cat-typical',short:'Typical',desc:'Below 120/80 is often cited as a typical range in general sources. This is general information only, not a diagnosis.'};}
+function getHRInfo(hr){
+if(hr==null||hr==='')return{label:'Not recorded',desc:'No pulse recorded for this entry.'};hr=+hr;
+if(hr<50)return{label:'Lower resting pulse',desc:'Below 50 is lower than the commonly cited typical resting range (about 60–100). How you feel and your usual pattern matter — ask a clinician if unsure.'};
+if(hr<60)return{label:'Low-normal resting pulse',desc:'50–59 can be normal for some people, especially if active. This is general information only.'};
+if(hr<100)return{label:'Within typical resting range',desc:'About 60–100 bpm is commonly cited as typical at rest. Context like movement, caffeine, and stress affects pulse.'};
+if(hr<120)return{label:'Elevated pulse',desc:'Above 100 at rest is often described as elevated in general sources. Recent activity, caffeine, stress, or dehydration can play a role. This is not a diagnosis.'};
+return{label:'High pulse',desc:'This is higher than typical resting ranges in general sources. Rest quietly and, if you feel unwell or are concerned, seek medical advice promptly.'};}
+/* ============ PROFILE ============ */
+function updateGateCounts(){document.getElementById('gateCountK').textContent=DB.kasper.measurements.length+' readings';document.getElementById('gateCountE').textContent=DB.elle.measurements.length+' readings'}
+function selectProfile(p){currentProfile=p;document.getElementById('profileGate').classList.add('hidden');document.getElementById('app').classList.remove('hidden');dailyDate=todayStrF();renderAll();switchTab('overview');window.scrollTo(0,0);toast('Welcome, '+PROFILES[p].name+' — your private journal is open')}
+function backToGate(){currentProfile=null;updateGateCounts();document.getElementById('app').classList.add('hidden');document.getElementById('profileGate').classList.remove('hidden');closeSwitch()}
+function openSwitch(){if(!currentProfile)return;document.getElementById('swCountK').textContent=DB.kasper.measurements.length+' readings'+(currentProfile==='kasper'?' · active':'');document.getElementById('swCountE').textContent=DB.elle.measurements.length+' readings'+(currentProfile==='elle'?' · active':'');document.getElementById('swK').style.borderColor=currentProfile==='kasper'?'#0E9384':'transparent';document.getElementById('swE').style.borderColor=currentProfile==='elle'?'#E85D6A':'transparent';document.getElementById('switchSheet').classList.remove('hidden')}
+function closeSwitch(){document.getElementById('switchSheet').classList.add('hidden')}
+function clearCurrent(){if(!confirm('Delete ALL measurements and reminders for '+PROFILES[currentProfile].name+' on this device? This cannot be undone.'))return;DB[currentProfile]={measurements:[],reminders:[]};saveDB();closeSwitch();renderAll();updateGateCounts();toast('Cleared '+PROFILES[currentProfile].name+'’s data')}
+function renderHeader(){const P=PROFILES[currentProfile];document.getElementById('pillAvatar').textContent=P.short;document.getElementById('pillAvatar').style.background=P.grad;document.getElementById('pillName').textContent=P.name;document.getElementById('activeLabel').textContent='Viewing '+P.name+'’s private journal · separate & secure';document.getElementById('activeDot').style.background=P.color;const h=new Date().getHours();const g=h<12?'Good morning':h<18?'Good afternoon':'Good evening';document.getElementById('greetTitle').textContent=g+', '+P.name;document.getElementById('greetDate').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}
+/* ============ NAV ============ */
+function switchTab(t){activeTab=t;['overview','daily','trends','history'].forEach(x=>document.getElementById('screen-'+x).classList.toggle('hidden',x!==t));document.querySelectorAll('.nav-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));window.scrollTo({top:0,behavior:'smooth'});if(t==='overview')renderOverview();if(t==='daily')renderDaily();if(t==='trends')renderTrends();if(t==='history')renderHistory()}
+function renderAll(){if(!currentProfile)return;renderHeader();renderOverview();renderDaily();renderTrends();renderHistory();renderRemDot()}
+/* ============ OVERVIEW ============ */
+const PERIODS=[['today','Today'],['7d','7D'],['30d','30D'],['3m','3M'],['all','All']];
+function pillsHTML(cur,fn){return PERIODS.map(([v,l])=>'<button onclick="'+fn+'(\''+v+'\')" class="pill '+(cur===v?'active':'')+'">'+l+'</button>').join('')}
+function setOverviewPeriod(p){overviewPeriod=p;renderOverview()}
+function setTrendsPeriod(p){trendsPeriod=p;renderTrends()}
 function renderOverview(){
-  const arr = measurements();
-  const latest = arr.length?arr[arr.length-1]:null;
-  const periodArr = periodFilter(arr, state.currentPeriod);
-  const last7 = arr.slice(-7);
-  const container = document.getElementById('pageContainer');
-
-  let latestHtml='';
-  if(latest){
-    const bp = bpCategory(latest.sys, latest.dia);
-    const hr = hrCategory(latest.hr);
-    latestHtml = `
-      <div class="card p-5 fade-in">
-        <div class="flex items-center justify-between">
-          <p class="text-xs uppercase tracking-wider text-[var(--ink-soft)]">Latest reading</p>
-          <p class="text-xs text-[var(--ink-soft)]">${prettyDateTime(latest.date, latest.time)}</p>
-        </div>
-        <div class="mt-3 grid grid-cols-2 gap-4">
-          <div>
-            <p class="font-display text-4xl font-semibold leading-none">${latest.sys}<span class="text-[var(--ink-soft)] text-xl">/${latest.dia}</span></p>
-            <p class="text-xs text-[var(--ink-soft)] mt-1">mmHg · blood pressure</p>
-            <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium" style="background:${toneBg(bp.tone)}; color:${toneColor(bp.tone)}">
-              <span class="w-1.5 h-1.5 rounded-full" style="background:${toneColor(bp.tone)}"></span>${bp.label}
-            </div>
-          </div>
-          <div>
-            <p class="font-display text-4xl font-semibold leading-none">${latest.hr}</p>
-            <p class="text-xs text-[var(--ink-soft)] mt-1">bpm · heart rate</p>
-            <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-medium" style="background:${toneBg(hr.tone)}; color:${toneColor(hr.tone)}">
-              <span class="w-1.5 h-1.5 rounded-full" style="background:${toneColor(hr.tone)}"></span>${hr.label}
-            </div>
-          </div>
-        </div>
-      </div>`;
-  } else {
-    latestHtml = `
-      <div class="card p-6 text-center fade-in">
-        <div class="mx-auto w-12 h-12 rounded-2xl bg-[var(--accent-soft)] flex items-center justify-center mb-3">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>
-        </div>
-        <p class="font-display text-lg font-semibold">No measurements yet</p>
-        <p class="text-sm text-[var(--ink-soft)] mt-1">Tap <strong>Add Measurement</strong> to log your first reading.</p>
-      </div>`;
-  }
-
-  // averages & stats
-  const avgSys = avg(periodArr.map(m=>m.sys));
-  const avgDia = avg(periodArr.map(m=>m.dia));
-  const avgHr = avg(periodArr.map(m=>m.hr));
-  const count = arr.length;
-  const countPeriod = periodArr.length;
-
-  // interpretation
-  let interp = 'Not enough data yet for an interpretation. Add a few readings over a few days to see patterns.';
-  if(last7.length>=3){
-    const aSys = avg(last7.map(x=>x.sys));
-    const aDia = avg(last7.map(x=>x.dia));
-    const aHr  = avg(last7.map(x=>x.hr));
-    const c = bpCategory(aSys, aDia);
-    const hc = hrCategory(aHr);
-    interp = `Your recent average is <strong>${aSys}/${aDia} mmHg</strong> and <strong>${aHr} bpm</strong>. The blood pressure trend looks <strong style="color:${toneColor(c.tone)}">${c.label.toLowerCase()}</strong> and heart rate <strong style="color:${toneColor(hc.tone)}">${hc.label.toLowerCase()}</strong>. This is just an observation of your own recent readings, not a diagnosis.`;
-  }
-
-  container.innerHTML = `
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="font-display text-2xl font-semibold leading-tight">Hello, ${state.active}</h1>
-          <p class="text-sm text-[var(--ink-soft)]">Here's your overview.</p>
-        </div>
-      </div>
-      ${latestHtml}
-
-      <div class="grid grid-cols-3 gap-3">
-        <div class="card p-4">
-          <p class="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">Avg systolic</p>
-          <p class="font-display text-2xl font-semibold mt-1">${avgSys||'—'}</p>
-        </div>
-        <div class="card p-4">
-          <p class="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">Avg diastolic</p>
-          <p class="font-display text-2xl font-semibold mt-1">${avgDia||'—'}</p>
-        </div>
-        <div class="card p-4">
-          <p class="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">Avg heart rate</p>
-          <p class="font-display text-2xl font-semibold mt-1">${avgHr||'—'}</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3">
-        <div class="card p-4">
-          <p class="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">Measurements</p>
-          <p class="font-display text-2xl font-semibold mt-1">${count}</p>
-          <p class="text-[11px] text-[var(--ink-soft)]">${countPeriod} in current period</p>
-        </div>
-        <div class="card p-4">
-          <p class="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">Profile</p>
-          <p class="font-display text-2xl font-semibold mt-1">${state.active}</p>
-          <p class="text-[11px] text-[var(--ink-soft)]">Private to you</p>
-        </div>
-      </div>
-
-      <div class="card p-5">
-        <p class="font-display text-lg font-semibold">Recent interpretation</p>
-        <p class="text-sm text-[var(--ink-soft)] mt-2 leading-relaxed">${interp}</p>
-      </div>
-
-      <div class="card p-5">
-        <div class="flex items-center justify-between mb-2">
-          <p class="font-display text-lg font-semibold">Blood pressure</p>
-        </div>
-        ${renderPeriodSwitch('overviewBpPeriod')}
-        <div class="chart-wrap mt-3"><canvas id="bpChart"></canvas></div>
-        <div class="flex items-center gap-4 mt-2 text-xs text-[var(--ink-soft)]">
-          <span class="flex items-center gap-1.5"><span class="w-3 h-1 rounded-full" style="background:#0f766e"></span>Systolic</span>
-          <span class="flex items-center gap-1.5"><span class="w-3 h-1 rounded-full" style="background:#14b8a6"></span>Diastolic</span>
-        </div>
-      </div>
-
-      <div class="card p-5">
-        <p class="font-display text-lg font-semibold mb-2">Heart rate</p>
-        <div class="chart-wrap"><canvas id="hrChart"></canvas></div>
-      </div>
-
-      <div class="card p-4 bg-[var(--warn-soft)] border-[#fde68a]">
-        <p class="text-xs text-[var(--warn)] font-semibold uppercase tracking-wider">Disclaimer</p>
-        <p class="text-sm mt-1 text-[var(--ink)] leading-relaxed">Pulse Journal is a personal tracker for general information only. It is not a medical device and does not diagnose, treat, or replace professional healthcare advice.</p>
-      </div>
-    </div>
-  `;
-
-  renderPeriodSwitchState('overviewBpPeriod', state.currentPeriod);
-  drawBpChart(periodArr);
-  drawHrChart(periodArr);
+if(!currentProfile)return;
+const list=allM();const empty=list.length===0;
+document.getElementById('overviewEmpty').classList.toggle('hidden',!empty);
+document.getElementById('overviewContent').classList.toggle('hidden',empty);
+if(empty)return;
+const latest=list[0];const bp=getBPInfo(latest.sys,latest.dia);const hrI=getHRInfo(latest.hr);
+document.getElementById('ovSys').textContent=latest.sys;document.getElementById('ovDia').textContent=latest.dia;
+document.getElementById('ovWhen').textContent=fmtDateFull(latest.timestamp)+' · '+fmtTime12(latest.timestamp)+' · '+timeAgo(latest.timestamp);
+const oc=document.getElementById('ovCat');oc.textContent=bp.short;oc.className='text-[11px] font-bold px-2.5 py-1 rounded-full '+bp.cls;
+document.getElementById('ovHr').textContent=(latest.hr??'—');document.getElementById('ovHrNote').textContent=hrI.label;
+document.getElementById('ovCount').textContent=list.length;
+const today=list.filter(x=>x.date===todayStrF()).length;
+document.getElementById('ovTodayCount').textContent=today+' today';
+const w7=list.filter(x=>x.timestamp>=Date.now()-7*86400000);
+const pool=w7.length?w7:list.slice(0,7);
+const aS=Math.round(avg(pool.map(x=>+x.sys))||0),aD=Math.round(avg(pool.map(x=>+x.dia))||0);
+const hrs=pool.map(x=>+x.hr).filter(Boolean);const aH=hrs.length?Math.round(avg(hrs)):0;
+document.getElementById('ovAvgBp').textContent=aS?aS+' / '+aD:'—';document.getElementById('ovAvgHr').textContent=aH||'—';
+const dS=latest.sys-aS,dD=latest.dia-aD;const near=Math.abs(dS)<=5&&Math.abs(dD)<=5;
+document.getElementById('ovDelta').innerHTML=(near?'● Latest is close to your 7-day average':(dS>0?'▲ ':'▼ ')+'Latest is '+Math.abs(dS)+' / '+Math.abs(dD)+' '+(dS>0?'above':'below')+' your recent average');
+let insight='Your recent average ('+pool.length+' readings) is about '+aS+'/'+aD+(aH?' with pulse ~'+aH:'')+'. ';
+insight+=near?'Your latest reading sits close to your own recent pattern — day-to-day variation is normal.':'Your latest reading differs a bit from your recent average — time of day, rest, caffeine, stress, and activity often explain short-term shifts. ';
+if(latest.stress>=4)insight+='You noted high stress this time, which is often associated with temporarily higher readings. ';
+if(latest.caffeine==='within2h')insight+='Caffeine within 2 hours was noted. ';
+if(latest.exercise!=='none'&&latest.exerciseWhen==='within30')insight+='Exercise just before measuring was noted. ';
+insight+='Keep tracking calmly; patterns over days matter more than any single number.';
+document.getElementById('ovInsight').textContent=insight;
+document.getElementById('ovPills').innerHTML=pillsHTML(overviewPeriod,'setOverviewPeriod');
+renderOvCharts();
+const tl=list.filter(x=>x.date===todayStrF()).sort((a,b)=>b.timestamp-a.timestamp);
+document.getElementById('ovTodayList').innerHTML=tl.length?tl.map(m=>rowMini(m)).join(''):'<div class="text-[13px] text-muted bg-[#F6F7F3] rounded-xl p-3 text-center">No readings today yet — tap + Add to log one.</div>';
+const rems=DB[currentProfile].reminders;
+document.getElementById('ovRemCount').textContent=rems.filter(r=>r.enabled).length+' on';
+document.getElementById('ovRemList').innerHTML=rems.length?rems.slice(0,3).map(r=>'<div class="flex items-center justify-between bg-[#F6F7F3] rounded-xl px-3 py-2 mb-1.5"><span class="font-semibold text-[13px] text-ink">⏰ '+esc(r.label)+'</span><span class="text-[12px] font-bold '+(r.enabled?'text-tealdark':'text-muted')+'">'+fmtRem(r.time)+' · '+(r.enabled?'on':'off')+'</span></div>').join(''):'<div>No reminders yet. Gentle reminders help build a calm routine.</div>';
 }
-
-/* ---------- Render: Daily ---------- */
+function rowMini(m){const bp=getBPInfo(m.sys,m.dia);const col=(m.sys>=140||m.dia>=90)?'#E85D6A':(m.sys>=130||m.dia>=80)?'#E8A23D':'#0E9384';return '<button onclick="viewDetail(\''+m.id+'\')" class="w-full flex items-center justify-between bg-[#F6F7F3] rounded-2xl px-3.5 py-2.5 text-left border-none cursor-pointer"><span class="flex items-center gap-2.5"><span class="w-2.5 h-9 rounded-full" style="background:'+col+'"></span><span><span class="block font-display font-bold text-[16px]">'+m.sys+'<span class="text-muted font-medium">/'+m.dia+'</span> <span class="text-[12px] font-body font-semibold text-muted">· ♥ '+(m.hr??'—')+'</span></span><span class="block text-[11px] text-muted font-medium">'+fmtTime12(m.timestamp)+'</span></span></span><span class="text-[11px] font-bold px-2 py-1 rounded-full '+bp.cls+'">'+bp.short+'</span></button>'}
+function chartOpts(sMin,sMax){return{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#152726',padding:10,cornerRadius:12,titleFont:{size:11},bodyFont:{size:12}}},scales:{x:{grid:{display:false},ticks:{font:{size:10,weight:'600'},color:'#8AA09C',maxRotation:0,maxTicksLimit:6}},y:{suggestedMin:sMin,suggestedMax:sMax,grid:{color:'rgba(21,39,38,.07)'},ticks:{font:{size:10,weight:'600'},color:'#8AA09C'}}},elements:{point:{radius:3,hoverRadius:5},line:{tension:.42,borderWidth:2.5}}}}
+function renderOvCharts(){
+const list=measAsc(filterByPeriod(allM(),overviewPeriod));
+const labels=list.map(m=>overviewPeriod==='today'?fmtTime12(m.timestamp):fmtShort(m.timestamp));
+['chartOverviewBP','chartOverviewHR'].forEach(id=>{if(charts[id])charts[id].destroy()});
+document.getElementById('ovBpEmpty').classList.toggle('hidden',list.length>0);
+document.getElementById('ovHrEmpty').classList.toggle('hidden',list.length>0);
+if(!list.length)return;
+charts.chartOverviewBP=new Chart(document.getElementById('chartOverviewBP'),{type:'line',data:{labels,datasets:[{label:'Systolic',data:list.map(m=>m.sys),borderColor:'#0E9384',backgroundColor:'rgba(14,147,132,.12)',fill:true,pointBackgroundColor:'#0E9384'},{label:'Diastolic',data:list.map(m=>m.dia),borderColor:'#8B8FD9',backgroundColor:'rgba(139,143,217,.10)',fill:true,pointBackgroundColor:'#8B8FD9'}]},options:chartOpts(50,160)});
+charts.chartOverviewHR=new Chart(document.getElementById('chartOverviewHR'),{type:'line',data:{labels,datasets:[{label:'Heart rate',data:list.map(m=>m.hr),borderColor:'#E85D6A',backgroundColor:'rgba(232,93,106,.12)',fill:true,pointBackgroundColor:'#E85D6A'}]},options:chartOpts(40,120)});
+}
+/* ============ DAILY ============ */
+function changeDaily(d){const dt=new Date(dailyDate+'T12:00:00');dt.setDate(dt.getDate()+d);dailyDate=dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate());renderDaily()}
+function goToday(){dailyDate=todayStrF();renderDaily()}
 function renderDaily(){
-  const arr = measurements().filter(m=>m.date===todayStr());
-  arr.sort((a,b)=> a.time.localeCompare(b.time));
-  const container = document.getElementById('pageContainer');
-  let listHtml='';
-  if(arr.length===0){
-    listHtml = `<div class="card p-6 text-center">
-      <p class="font-display text-lg font-semibold">No measurements today</p>
-      <p class="text-sm text-[var(--ink-soft)] mt-1">Add one to start today's log.</p>
-    </div>`;
-  } else {
-    listHtml = arr.map(m=>{
-      const bp = bpCategory(m.sys,m.dia);
-      const hr = hrCategory(m.hr);
-      return `
-      <div class="card p-4 fade-in" onclick="openEdit('${m.id}')">
-        <div class="flex items-center justify-between">
-          <p class="font-semibold">${formatTime12(m.time)}</p>
-          <span class="text-xs px-2 py-0.5 rounded-full" style="background:${toneBg(bp.tone)}; color:${toneColor(bp.tone)}">${bp.label}</span>
-        </div>
-        <div class="mt-2 flex items-baseline gap-4">
-          <p class="font-display text-2xl font-semibold">${m.sys}/${m.dia}<span class="text-xs text-[var(--ink-soft)] font-normal ml-1">mmHg</span></p>
-          <p class="font-display text-lg font-semibold text-[var(--accent)]">${m.hr}<span class="text-xs text-[var(--ink-soft)] font-normal ml-1">bpm</span></p>
-        </div>
-        ${m.notes?`<p class="text-xs text-[var(--ink-soft)] mt-2">"${m.notes}"</p>`:''}
-      </div>`;
-    }).join('');
-  }
-  const dailyAvg = arr.length?`<p class="text-sm text-[var(--ink-soft)]">Today's average: <strong>${avg(arr.map(x=>x.sys))}/${avg(arr.map(x=>x.dia))} mmHg</strong> · <strong>${avg(arr.map(x=>x.hr))} bpm</strong></p>`:'';
-
-  container.innerHTML = `
-    <div class="space-y-4">
-      <div>
-        <h1 class="font-display text-2xl font-semibold">Today</h1>
-        <p class="text-sm text-[var(--ink-soft)]">${new Date().toLocaleDateString(undefined,{weekday:'long', month:'long', day:'numeric'})}</p>
-      </div>
-      ${dailyAvg}
-      <div class="space-y-3">${listHtml}</div>
-      <p class="text-[11px] text-center text-[var(--ink-soft)] mt-4">Tap any reading to edit or delete it.</p>
-    </div>
-  `;
+if(!currentProfile)return;
+const isT=dailyDate===todayStrF();const dObj=new Date(dailyDate+'T12:00:00');
+document.getElementById('dailyTitle').textContent=isT?'Today':dObj.toLocaleDateString(undefined,{weekday:'long'});
+document.getElementById('dailySub').textContent=dObj.toLocaleDateString(undefined,{month:'long',day:'numeric',year:'numeric'});
+const day=allM().filter(m=>m.date===dailyDate).sort((a,b)=>a.timestamp-b.timestamp);
+const cS=day.length?Math.round(avg(day.map(m=>+m.sys))):null;
+const cD=day.length?Math.round(avg(day.map(m=>+m.dia))):null;
+const hh=day.map(m=>+m.hr).filter(Boolean);const cH=hh.length?Math.round(avg(hh)):null;
+document.getElementById('dailyStats').innerHTML=statCard('Readings',day.length)+statCard('Avg BP',day.length?cS+'/'+cD:'—')+statCard('Avg pulse',cH||'—');
+document.getElementById('dailyList').innerHTML=day.length?day.slice().reverse().map((m,i)=>'<div class="flex gap-3"><div class="flex flex-col items-center"><div class="timeline-dot" style="background:'+((m.sys>=140||m.dia>=90)?'#E85D6A':'#0E9384')+'"></div>'+(i<day.length-1?'<div class="w-0.5 flex-1 bg-[#DDE5E2] my-1"></div>':'')+'</div><button onclick="viewDetail(\''+m.id+'\')" class="card flex-1 p-4 text-left mb-1 cursor-pointer"><div class="flex items-center justify-between"><span class="text-[12px] font-bold text-muted">'+fmtTime12(m.timestamp)+'</span><span class="text-[11px] font-bold px-2 py-0.5 rounded-full '+getBPInfo(m.sys,m.dia).cls+'">'+getBPInfo(m.sys,m.dia).short+'</span></div><div class="font-display font-bold text-[26px] mt-0.5">'+m.sys+'<span class="text-muted text-[18px] font-medium">/'+m.dia+'</span> <span class="text-[13px] font-body font-bold text-[#E85D6A]">♥ '+(m.hr??'—')+'</span></div><div class="text-[12px] text-muted font-medium mt-1">'+ctxSummary(m)+'</div></button></div>').join(''):'<div class="card p-8 text-center"><div class="text-3xl mb-2">○</div><div class="font-display font-bold">No readings on this day</div><p class="text-[13px] text-muted mt-1">Daily overview shows every measurement for the selected day.</p></div>';
 }
-
-/* ---------- Render: Trends ---------- */
+function statCard(l,v){return '<div class="card p-3 text-center"><div class="text-[10px] font-bold uppercase tracking-widest text-muted">'+l+'</div><div class="font-display font-bold text-[18px] mt-0.5">'+v+'</div></div>'}
+function ctxSummary(m){const p=[];if(m.stress>=4)p.push('stressed');if(m.caffeine==='within2h')p.push('caffeine 2h');if(m.exercise!=='none')p.push(m.exercise+' exercise');if(m.sleep==='poor'||m.sleep==='fair')p.push(m.sleep+' sleep');if(m.symptoms&&!m.symptoms.includes('none'))p.push(m.symptoms.slice(0,2).join(', '));if(m.notes)p.push('“'+esc(m.notes.slice(0,42))+(m.notes.length>42?'…':'')+'”');return p.length?p.join(' · '):'Calm conditions noted'}
+/* ============ TRENDS ============ */
 function renderTrends(){
-  const arr = measurements();
-  const periodArr = periodFilter(arr, state.trendsPeriod);
-  const container = document.getElementById('pageContainer');
-
-  const avgSys = avg(periodArr.map(x=>x.sys));
-  const avgDia = avg(periodArr.map(x=>x.dia));
-  const avgHr = avg(periodArr.map(x=>x.hr));
-  // Trend direction: compare first half vs second half
-  function trend(arr, key){
-    if(arr.length<4) return '—';
-    const half=Math.floor(arr.length/2);
-    const a=avg(arr.slice(0,half).map(x=>x[key]));
-    const b=avg(arr.slice(half).map(x=>x[key]));
-    const diff=b-a;
-    if(Math.abs(diff)<2) return {dir:'Stable', diff};
-    return {dir: diff>0?'Rising':'Falling', diff};
-  }
-  const tSys=trend(periodArr,'sys');
-  const tDia=trend(periodArr,'dia');
-  const tHr=trend(periodArr,'hr');
-
-  // Compare new measurement with recent
-  const latest = arr.length?arr[arr.length-1]:null;
-  const recent = arr.slice(-8,-1);
-  let compareHtml='';
-  if(latest && recent.length){
-    const cSys = latest.sys-avg(recent.map(x=>x.sys));
-    const cDia = latest.dia-avg(recent.map(x=>x.dia));
-    const cHr  = latest.hr -avg(recent.map(x=>x.hr));
-    compareHtml = `
-      <div class="card p-5">
-        <p class="font-display text-lg font-semibold">Latest vs. your recent average</p>
-        <div class="grid grid-cols-3 gap-3 mt-3 text-center">
-          <div><p class="text-xs text-[var(--ink-soft)]">Systolic</p><p class="font-display text-xl font-semibold ${cSys>0?'text-[var(--warn)]':cSys<0?'text-[var(--accent)]':''}">${cSys>0?'+':''}${cSys}</p></div>
-          <div><p class="text-xs text-[var(--ink-soft)]">Diastolic</p><p class="font-display text-xl font-semibold ${cDia>0?'text-[var(--warn)]':cDia<0?'text-[var(--accent)]':''}">${cDia>0?'+':''}${cDia}</p></div>
-          <div><p class="text-xs text-[var(--ink-soft)]">Heart rate</p><p class="font-display text-xl font-semibold ${cHr>0?'text-[var(--warn)]':cHr<0?'text-[var(--accent)]':''}">${cHr>0?'+':''}${cHr}</p></div>
-        </div>
-        <p class="text-[11px] text-[var(--ink-soft)] mt-3">Comparing ${state.active}'s latest reading with the previous ${recent.length} readings — your own data only.</p>
-      </div>`;
-  }
-
-  function trendLabel(t){ if(t==='—') return '<span class="text-[var(--ink-soft)]">—</span>'; const c = t.dir==='Rising'?'var(--warn)':t.dir==='Falling'?'var(--accent)':'#6b7280'; return `<span style="color:${c}" class="font-semibold">${t.dir} ${t.diff>0?'+':''}${t.diff}</span>`; }
-
-  container.innerHTML = `
-    <div class="space-y-4">
-      <div>
-        <h1 class="font-display text-2xl font-semibold">Trends</h1>
-        <p class="text-sm text-[var(--ink-soft)]">${state.active}'s patterns over time.</p>
-      </div>
-      ${renderPeriodSwitch('trendsPeriod')}
-      <div class="grid grid-cols-3 gap-3">
-        <div class="card p-4">
-          <p class="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">Avg BP</p>
-          <p class="font-display text-xl font-semibold mt-1">${avgSys||'—'}/${avgDia||'—'}</p>
-          <p class="text-[11px] mt-1">Trend: ${trendLabel(tSys)} / ${trendLabel(tDia)}</p>
-        </div>
-        <div class="card p-4">
-          <p class="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">Avg HR</p>
-          <p class="font-display text-xl font-semibold mt-1">${avgHr||'—'}</p>
-          <p class="text-[11px] mt-1">Trend: ${trendLabel(tHr)}</p>
-        </div>
-        <div class="card p-4">
-          <p class="text-[10px] uppercase tracking-wider text-[var(--ink-soft)]">Readings</p>
-          <p class="font-display text-xl font-semibold mt-1">${periodArr.length}</p>
-          <p class="text-[11px] mt-1 text-[var(--ink-soft)]">in period</p>
-        </div>
-      </div>
-      ${compareHtml}
-      <div class="card p-5">
-        <p class="font-display text-lg font-semibold mb-2">Blood pressure trend</p>
-        <div class="chart-wrap"><canvas id="trendBpChart"></canvas></div>
-      </div>
-      <div class="card p-5">
-        <p class="font-display text-lg font-semibold mb-2">Heart rate trend</p>
-        <div class="chart-wrap"><canvas id="trendHrChart"></canvas></div>
-      </div>
-      <div class="card p-4 bg-[var(--warn-soft)] border-[#fde68a]">
-        <p class="text-xs text-[var(--warn)] font-semibold uppercase tracking-wider">Reminder</p>
-        <p class="text-sm mt-1 text-[var(--ink)]">Trends show your own readings over time. They are observations, not diagnoses. Discuss any concerns with a healthcare professional.</p>
-      </div>
-    </div>
-  `;
-  renderPeriodSwitchState('trendsPeriod', state.trendsPeriod);
-  drawTrendBpChart(periodArr);
-  drawTrendHrChart(periodArr);
+if(!currentProfile)return;
+document.getElementById('trendPills').innerHTML=pillsHTML(trendsPeriod,'setTrendsPeriod');
+const list=allM();const cur=measAsc(filterByPeriod(list,trendsPeriod));
+const day=86400000,now=Date.now();let prev=[];
+if(trendsPeriod==='7d')prev=list.filter(x=>x.timestamp<now-7*day&&x.timestamp>=now-14*day);
+else if(trendsPeriod==='30d')prev=list.filter(x=>x.timestamp<now-30*day&&x.timestamp>=now-60*day);
+else if(trendsPeriod==='3m')prev=list.filter(x=>x.timestamp<now-90*day&&x.timestamp>=now-180*day);
+const aS=cur.length?avg(cur.map(m=>+m.sys)):null,aD=cur.length?avg(cur.map(m=>+m.dia)):null,aH=cur.length?avg(cur.map(m=>+m.hr).filter(Boolean)):null;
+const pS=prev.length?avg(prev.map(m=>+m.sys)):null;
+const trend=(c,p)=>{if(c==null||p==null)return{t:'—',up:0};const d=c-p;if(Math.abs(d)<1.5)return{t:'stable',up:0};return{t:(d>0?'+':'')+d.toFixed(1),up:d>0?1:-1}};
+const tS=trend(aS,pS),tD=trend(aD,prev.length?avg(prev.map(m=>+m.dia)):null),tH=trend(aH,prev.length?avg(prev.map(m=>+m.hr).filter(Boolean)):null);
+const arrow=u=>u===0?'<span style="color:#8AA09C">→</span>':u>0?'<span style="color:#C96A2B">▲</span>':'<span style="color:#0E9384">▼</span>';
+document.getElementById('trendsKPIs').innerHTML='<div class="card p-3 text-center"><div class="text-[10px] font-bold uppercase tracking-widest text-muted">Avg SYS</div><div class="font-display font-bold text-[20px]">'+(aS?Math.round(aS):'—')+'</div><div class="text-[11px] font-bold">'+arrow(tS.up)+' '+tS.t+'</div></div>'+'<div class="card p-3 text-center"><div class="text-[10px] font-bold uppercase tracking-widest text-muted">Avg DIA</div><div class="font-display font-bold text-[20px]">'+(aD?Math.round(aD):'—')+'</div><div class="text-[11px] font-bold">'+arrow(tD.up)+' '+tD.t+'</div></div>'+'<div class="card p-3 text-center"><div class="text-[10px] font-bold uppercase tracking-widest text-muted">Avg pulse</div><div class="font-display font-bold text-[20px]">'+(aH?Math.round(aH):'—')+'</div><div class="text-[11px] font-bold">'+arrow(tH.up)+' '+tH.t+'</div></div>';
+['chartTrendsBP','chartTrendsHR'].forEach(id=>{if(charts[id])charts[id].destroy()});
+document.getElementById('trBpEmpty').classList.toggle('hidden',cur.length>0);
+document.getElementById('trHrEmpty').classList.toggle('hidden',cur.length>0);
+if(cur.length){
+const labels=cur.map(m=>fmtShort(m.timestamp));
+charts.chartTrendsBP=new Chart(document.getElementById('chartTrendsBP'),{type:'line',data:{labels,datasets:[{data:cur.map(m=>m.sys),borderColor:'#0E9384',backgroundColor:'rgba(14,147,132,.12)',fill:true,pointBackgroundColor:'#0E9384'},{data:cur.map(m=>m.dia),borderColor:'#8B8FD9',backgroundColor:'rgba(139,143,217,.10)',fill:true,pointBackgroundColor:'#8B8FD9'}]},options:chartOpts(50,160)});
+charts.chartTrendsHR=new Chart(document.getElementById('chartTrendsHR'),{type:'line',data:{labels,datasets:[{data:cur.map(m=>m.hr),borderColor:'#E85D6A',backgroundColor:'rgba(232,93,106,.12)',fill:true,pointBackgroundColor:'#E85D6A'}]},options:chartOpts(40,120)});
+const rS=Math.min(...cur.map(m=>+m.sys))+'–'+Math.max(...cur.map(m=>+m.sys));
+const hrs2=cur.map(m=>+m.hr).filter(Boolean);
+document.getElementById('trBpMeta').textContent=cur.length+' readings · range '+rS+' / '+Math.min(...cur.map(m=>+m.dia))+'–'+Math.max(...cur.map(m=>+m.dia));
+document.getElementById('trHrMeta').textContent=hrs2.length?cur.length+' readings · range '+Math.min(...hrs2)+'–'+Math.max(...hrs2)+' bpm':'';
+}else{document.getElementById('trBpMeta').textContent='';document.getElementById('trHrMeta').textContent=''}
+const ins=[];
+if(cur.length>=3){
+ins.push({t:'Direction vs previous period',d:prev.length?('Systolic '+(tS.up===0?'is stable':tS.up>0?'trends a little higher ('+tS.t+')':'trends a little lower ('+tS.t+')')+' compared with your own earlier readings.'):'Not enough earlier data yet — keep logging to reveal direction.'});
+const morn=cur.filter(m=>new Date(m.timestamp).getHours()<12),eve=cur.filter(m=>new Date(m.timestamp).getHours()>=17);
+if(morn.length&&eve.length){const dM=avg(morn.map(m=>+m.sys))-avg(eve.map(m=>+m.sys));ins.push({t:'Morning vs evening',d:'Your morning average is '+(Math.abs(dM)<2?'about the same as':dM>0?Math.round(dM)+' points higher than':'about '+Math.round(Math.abs(dM))+' points lower than')+' your evening average. Gentle daily rhythms are common.'})}
+const stressed=cur.filter(m=>m.stress>=4),calm=cur.filter(m=>m.stress<=2);
+if(stressed.length&&calm.length){const dd=avg(stressed.map(m=>+m.sys))-avg(calm.map(m=>+m.sys));ins.push({t:'Stress pattern',d:dd>2?'Readings you marked as stressful average ~'+Math.round(dd)+' higher systolic than calm ones in this period. Rest and slow breathing before measuring may help.':'No clear stress gap in this period.'})}
+const caf=cur.filter(m=>m.caffeine==='within2h');
+if(caf.length>=2)ins.push({t:'Caffeine note',d:caf.length+' readings followed caffeine within 2 hours. Caffeine is often associated with short-term rises — noting timing helps you see your own pattern.'});
+const rng=Math.max(...cur.map(m=>+m.sys))-Math.min(...cur.map(m=>+m.sys));
+ins.push({t:'Variability',d:rng<=15?'Your systolic range spans '+rng+' points — fairly steady for home tracking.':rng<=30?'Your systolic spans '+rng+' points — moderate variation, often explained by time of day and activity.':'Your systolic spans '+rng+' points — quite variable. Try resting 5 minutes, same arm, same posture, and note context each time.'});
+}else ins.push({t:'Keep going',d:'Log a few more readings to unlock personal patterns. Morning and evening pairs are especially helpful.'});
+document.getElementById('trendsInsights').innerHTML=ins.map(x=>'<div class="bg-[#F6F7F3] rounded-2xl p-3"><div class="text-[13px] font-bold">'+x.t+'</div><div class="text-[12.5px] text-[#4B5F5C] leading-relaxed mt-0.5">'+x.d+'</div></div>').join('');
+const latest=list[0];
+if(latest&&aS){
+const dS=latest.sys-Math.round(aS),dD=latest.dia-Math.round(aD);
+document.getElementById('trendsCompare').innerHTML=cmpRow('Latest',latest.sys+' / '+latest.dia,'Your recent avg',Math.round(aS)+' / '+Math.round(aD),dS,dD)+(latest.hr&&aH?cmpRow('Latest pulse',latest.hr+' bpm','Your recent avg',Math.round(aH)+' bpm',latest.hr-Math.round(aH),0,true):'');
+}else document.getElementById('trendsCompare').innerHTML='<div class="text-[13px] text-muted">No comparison available yet.</div>';
 }
-
-/* ---------- Render: History ---------- */
+function cmpRow(a,av,b,bv,dS,dD,hr){const up=hr?dS>2:(dS>3||dD>2);const dn=hr?dS<-2:(dS<-3||dD<-2);const chip=up?'<span class="text-[11px] font-bold bg-[#FFF0E0] text-[#9A5B00] px-2 py-1 rounded-full">a bit above avg</span>':dn?'<span class="text-[11px] font-bold bg-[#E6F4EF] text-tealdark px-2 py-1 rounded-full">a bit below avg</span>':'<span class="text-[11px] font-bold bg-[#EFF3F0] text-muted px-2 py-1 rounded-full">close to avg</span>';return '<div class="flex items-center justify-between bg-white rounded-2xl border border-black/5 px-3.5 py-2.5"><div><div class="text-[11px] font-bold text-muted">'+a+'</div><div class="font-display font-bold text-[17px]">'+av+'</div></div>'+chip+'<div class="text-right"><div class="text-[11px] font-bold text-muted">'+b+'</div><div class="font-display font-bold text-[17px] text-muted">'+bv+'</div></div></div>'}
+/* ============ HISTORY ============ */
+function onHistSearch(v){histQ=v.toLowerCase();renderHistory()}
+function setHistRange(r){histRange=r;renderHistory()}
 function renderHistory(){
-  const arr = measurements().slice().reverse();
-  const container = document.getElementById('pageContainer');
-  let listHtml;
-  if(arr.length===0){
-    listHtml = `<div class="card p-6 text-center"><p class="font-display text-lg font-semibold">No history yet</p><p class="text-sm text-[var(--ink-soft)] mt-1">Your measurements will appear here.</p></div>`;
-  } else {
-    listHtml = arr.map(m=>{
-      const bp = bpCategory(m.sys,m.dia);
-      const hr = hrCategory(m.hr);
-      const chips=[];
-      if(m.stress) chips.push(m.stress+' stress');
-      if(m.exercise && m.exercise!=='None') chips.push(m.exercise+' exercise');
-      if(m.caffeine && m.caffeine!=='No') chips.push(m.caffeine+' caffeine');
-      if(m.nicotine==='Yes') chips.push('nicotine');
-      if(m.alcohol && m.alcohol!=='No') chips.push(m.alcohol+' alcohol');
-      if(m.sleep) chips.push(m.sleep+' sleep');
-      if(m.activity && m.activity[0]!=='None') chips.push(m.activity.filter(a=>a!=='None').join(', '));
-      if(m.symptoms && m.symptoms[0]!=='None') chips.push('Symptoms: '+m.symptoms.filter(s=>s!=='None').join(', '));
-      return `
-      <div class="card p-4 fade-in" onclick="openEdit('${m.id}')">
-        <div class="flex items-start justify-between">
-          <div>
-            <p class="text-xs text-[var(--ink-soft)]">${prettyDateTime(m.date,m.time)}</p>
-            <div class="mt-1 flex items-baseline gap-3">
-              <p class="font-display text-2xl font-semibold">${m.sys}/${m.dia}<span class="text-xs text-[var(--ink-soft)] font-normal ml-1">mmHg</span></p>
-              <p class="font-display text-lg font-semibold text-[var(--accent)]">${m.hr}<span class="text-xs text-[var(--ink-soft)] font-normal ml-1">bpm</span></p>
-            </div>
-          </div>
-          <span class="text-[10px] px-2 py-0.5 rounded-full" style="background:${toneBg(bp.tone)}; color:${toneColor(bp.tone)}">${bp.label}</span>
-        </div>
-        ${chips.length?`<div class="mt-3 flex flex-wrap gap-1.5">${chips.map(c=>`<span class="px-2 py-0.5 rounded-full text-[10px] bg-[var(--bg-soft)] border border-[var(--line)] text-[var(--ink-soft)]">${c}</span>`).join('')}</div>`:''}
-        ${m.notes?`<p class="text-xs text-[var(--ink-soft)] mt-2 italic">"${m.notes}"</p>`:''}
-      </div>`;
-    }).join('');
-  }
-  container.innerHTML = `
-    <div class="space-y-4">
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="font-display text-2xl font-semibold">History</h1>
-          <p class="text-sm text-[var(--ink-soft)]">${arr.length} measurements · ${state.active} only</p>
-        </div>
-      </div>
-      <div class="space-y-3">${listHtml}</div>
-      <p class="text-[11px] text-center text-[var(--ink-soft)] mt-4">Tap any entry to edit or delete it.</p>
-    </div>
-  `;
+if(!currentProfile)return;
+const ranges=[['all','All'],['today','Today'],['week','7 days'],['month','30 days']];
+document.getElementById('histPills').innerHTML=ranges.map(([v,l])=>'<button onclick="setHistRange(\''+v+'\')" class="pill '+(histRange===v?'active':'')+'">'+l+'</button>').join('');
+let list=allM();
+if(histRange==='today')list=list.filter(m=>m.date===todayStrF());
+if(histRange==='week')list=list.filter(m=>m.timestamp>=Date.now()-7*86400000);
+if(histRange==='month')list=list.filter(m=>m.timestamp>=Date.now()-30*86400000);
+if(histQ)list=list.filter(m=>(m.notes||'').toLowerCase().includes(histQ)||(m.symptoms||[]).join(' ').toLowerCase().includes(histQ)||String(m.sys).includes(histQ));
+document.getElementById('histCount').textContent=list.length+' reading'+(list.length!==1?'s':'')+' · '+PROFILES[currentProfile].name+' only';
+if(!list.length){document.getElementById('historyList').innerHTML='<div class="card p-8 text-center text-[13px] text-muted">No readings match. Try another filter or add a new measurement.</div>';return}
+const groups={};list.forEach(m=>{(groups[m.date]=groups[m.date]||[]).push(m)});
+document.getElementById('historyList').innerHTML=Object.keys(groups).sort().reverse().map(d=>{
+const dt=new Date(d+'T12:00:00');const label=d===todayStrF()?'Today':dt.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+return '<div><div class="text-[12px] font-bold text-muted uppercase tracking-widest px-1 mb-1.5">'+label+'</div><div class="space-y-2">'+groups[d].map(m=>'<div class="card p-3.5"><button onclick="viewDetail(\''+m.id+'\')" class="w-full flex items-center justify-between text-left bg-transparent border-none cursor-pointer"><span><span class="font-display font-bold text-[20px]">'+m.sys+'<span class="text-muted font-medium text-[16px]">/'+m.dia+'</span></span> <span class="text-[12px] font-bold text-[#E85D6A]">♥ '+(m.hr??'—')+'</span><span class="block text-[11px] text-muted font-medium">'+fmtTime12(m.timestamp)+' · '+esc(ctxSummary(m).slice(0,60))+'</span></span><span class="text-[11px] font-bold px-2 py-1 rounded-full '+getBPInfo(m.sys,m.dia).cls+'">'+getBPInfo(m.sys,m.dia).short+'</span></button><div class="flex gap-2 mt-2.5"><button onclick="editMeasurement(\''+m.id+'\')" class="flex-1 text-[12px] font-bold bg-[#EFF3F0] rounded-xl py-2 border-none cursor-pointer">Edit</button><button onclick="delMeasurement(\''+m.id+'\')" class="flex-1 text-[12px] font-bold bg-[#FFE9E9] text-[#B4232A] rounded-xl py-2 border-none cursor-pointer">Delete</button></div></div>').join('')+'</div></div>'}).join('');
 }
-
-/* ---------- Edit / Delete ---------- */
-function openEdit(id){
-  const m = measurements().find(x=>x.id===id);
-  if(!m) return;
-  state.editingId = id;
-  document.getElementById('edSys').value = m.sys;
-  document.getElementById('edDia').value = m.dia;
-  document.getElementById('edHr').value = m.hr;
-  document.getElementById('edDate').value = m.date;
-  document.getElementById('edNotes').value = m.notes||'';
-  // time select
-  const edTime = document.getElementById('edTime');
-  edTime.innerHTML = '<option value="">Pick…</option>'+buildTimeOptions();
-  edTime.value = m.time;
-  document.getElementById('editSheet').classList.remove('hidden');
+function exportCSV(){
+const list=allM();if(!list.length)return toast('Nothing to export yet');
+const rows=[['date','time','systolic','diastolic','heart_rate','stress','exercise','caffeine','nicotine','alcohol','sleep','sleep_hours','activity','symptoms','notes']];
+list.slice().reverse().forEach(m=>rows.push([m.date,fmtTime12(m.timestamp),m.sys,m.dia,m.hr??'',m.stress,m.exercise,m.caffeine,m.nicotine,m.alcohol,m.sleep,m.sleepHours,m.activity,(m.symptoms||[]).join('|'),'"'+(m.notes||'').replace(/"/g,'""')+'"']));
+const csv=rows.map(r=>r.join(',')).join('\n');
+const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download=PROFILES[currentProfile].name.toLowerCase()+'_pulse_journal.csv';a.click();toast('Exported '+list.length+' readings');
 }
-function closeEdit(){ document.getElementById('editSheet').classList.add('hidden'); state.editingId=null; }
-function updateMeasurement(){
-  const m = measurements().find(x=>x.id===state.editingId);
-  if(!m) return;
-  const sys = parseInt(document.getElementById('edSys').value);
-  const dia = parseInt(document.getElementById('edDia').value);
-  const hr  = parseInt(document.getElementById('edHr').value);
-  const date= document.getElementById('edDate').value;
-  const time= document.getElementById('edTime').value;
-  const notes=document.getElementById('edNotes').value.trim();
-  if(!sys||!dia||!hr||!date||!time){ toast('Please fill all fields'); return; }
-  m.sys=sys; m.dia=dia; m.hr=hr; m.date=date; m.time=time; m.notes=notes;
-  state.data[state.active].sort((a,b)=> (a.date+a.time).localeCompare(b.date+b.time));
-  saveState();
-  closeEdit();
-  navTo(state.currentPage);
-  toast('Updated');
+/* ============ ADD FLOW ============ */
+const OPT={
+exercise:[['none','None'],['light','Light'],['moderate','Moderate'],['intense','Intense']],
+exWhen:[['within30','< 30 min'],['30to60','30–60 min'],['1to3h','1–3 h'],['over3h','3h+']],
+caf:[['none','None today'],['earlier','Earlier today'],['within2h','Within 2 h'],['multiple','Multiple']],
+nic:[['no','No'],['earlier','Earlier'],['recent','Recent']],
+alc:[['no','No'],['1drink','1 drink'],['2plus','2+']],
+sleep:[['poor','Poor'],['fair','Fair'],['good','Good'],['excellent','Excellent']],
+act:[['rested','Rested 5+ min'],['sitting','Sitting calmly'],['walking','Walking'],['desk','Working / desk'],['housework','Housework'],['exercising','Exercising'],['wokeup','Just woke up'],['aftermeal','After meal']],
+sym:[['none','None'],['headache','Headache'],['dizziness','Dizziness'],['palpitations','Palpitations'],['chest','Chest discomfort'],['breath','Short of breath'],['anxious','Anxious'],['tired','Fatigue'],['nausea','Nausea'],['vision','Vision changes']]
+};
+function buildCtx(){
+document.getElementById('gStress').innerHTML=[1,2,3,4,5].map(n=>'<button data-v="'+n+'" onclick="setCtx(\'stress\','+n+',this)" class="chip flex-1 text-center !px-0 border-none">'+n+'</button>').join('');
+document.getElementById('gExercise').innerHTML=OPT.exercise.map(([v,l])=>'<button data-v="'+v+'" onclick="setCtx(\'exercise\',\''+v+'\',this)" class="chip border-none">'+l+'</button>').join('');
+document.getElementById('gExWhen').innerHTML=OPT.exWhen.map(([v,l])=>'<button data-v="'+v+'" onclick="setCtx(\'exerciseWhen\',\''+v+'\',this)" class="chip border-none">'+l+'</button>').join('');
+document.getElementById('gCaf').innerHTML=OPT.caf.map(([v,l])=>'<button data-v="'+v+'" onclick="setCtx(\'caffeine\',\''+v+'\',this)" class="chip border-none">'+l+'</button>').join('');
+document.getElementById('gNic').innerHTML=OPT.nic.map(([v,l])=>'<button data-v="'+v+'" onclick="setCtx(\'nicotine\',\''+v+'\',this)" class="chip border-none">'+l+'</button>').join('');
+document.getElementById('gAlc').innerHTML=OPT.alc.map(([v,l])=>'<button data-v="'+v+'" onclick="setCtx(\'alcohol\',\''+v+'\',this)" class="chip border-none">'+l+'</button>').join('');
+document.getElementById('gSleep').innerHTML=OPT.sleep.map(([v,l])=>'<button data-v="'+v+'" onclick="setCtx(\'sleep\',\''+v+'\',this)" class="chip border-none">'+l+'</button>').join('');
+document.getElementById('gAct').innerHTML=OPT.act.map(([v,l])=>'<button data-v="'+v+'" onclick="setCtx(\'activity\',\''+v+'\',this)" class="chip border-none">'+l+'</button>').join('');
+document.getElementById('gSym').innerHTML=OPT.sym.map(([v,l])=>'<button data-v="'+v+'" onclick="toggleSym(\''+v+'\',this)" class="chip border-none">'+l+'</button>').join('');
 }
-function deleteMeasurement(){
-  if(!state.editingId) return;
-  if(!confirm('Delete this measurement?')) return;
-  state.data[state.active] = measurements().filter(x=>x.id!==state.editingId);
-  saveState();
-  closeEdit();
-  navTo(state.currentPage);
-  toast('Deleted');
+function paintCtx(){
+const map={stress:'gStress',exercise:'gExercise',exerciseWhen:'gExWhen',caffeine:'gCaf',nicotine:'gNic',alcohol:'gAlc',sleep:'gSleep',activity:'gAct'};
+Object.entries(map).forEach(([k,id])=>{document.querySelectorAll('#'+id+' .chip').forEach(c=>c.classList.toggle('selected',String(c.dataset.v)===String(draft[k])))});
+document.querySelectorAll('#gSym .chip').forEach(c=>c.classList.toggle('selected',draft.symptoms.includes(c.dataset.v)));
+document.getElementById('exWhenWrap').classList.toggle('hidden',draft.exercise==='none');
+document.getElementById('inSleepH').value=draft.sleepHours;
+document.getElementById('sleepHVal').textContent=draft.sleepHours+' h';
+document.getElementById('inNotes').value=draft.notes||'';
 }
-
-/* ---------- Period switch UI ---------- */
-function renderPeriodSwitch(id){
-  const periods = [
-    {k:'today', label:'Today'},
-    {k:'7d', label:'7d'},
-    {k:'30d', label:'30d'},
-    {k:'90d', label:'3mo'},
-    {k:'all', label:'All'},
-  ];
-  return `<div id="${id}" class="flex gap-1.5 bg-[var(--bg-soft)] p-1 rounded-xl">
-    ${periods.map(p=>`<button data-period="${p.k}" onclick="setPeriod('${id}','${p.k}')" class="period-btn flex-1 py-1.5 text-xs font-medium rounded-lg text-[var(--ink-soft)]">${p.label}</button>`).join('')}
-  </div>`;
+function setCtx(k,v,el){draft[k]=v;if(k==='exercise')document.getElementById('exWhenWrap').classList.toggle('hidden',v==='none');el.parentElement.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected'));el.classList.add('selected')}
+function toggleSym(v,el){if(v==='none'){draft.symptoms=['none']}else{draft.symptoms=draft.symptoms.filter(x=>x!=='none');if(draft.symptoms.includes(v))draft.symptoms=draft.symptoms.filter(x=>x!==v);else draft.symptoms.push(v);if(!draft.symptoms.length)draft.symptoms=['none']}paintCtx()}
+function updSleepH(v){draft.sleepHours=+v;document.getElementById('sleepHVal').textContent=v+' h'}
+function fillTimeSelects(){
+const h=document.getElementById('inHour');h.innerHTML='';for(let i=1;i<=12;i++)h.innerHTML+='<option>'+i+'</option>';
+const m=document.getElementById('inMin');m.innerHTML='';for(let i=0;i<60;i++)m.innerHTML+='<option value="'+pad(i)+'">'+pad(i)+'</option>';
+const rh=document.getElementById('remHour');rh.innerHTML='';for(let i=1;i<=12;i++)rh.innerHTML+='<option>'+i+'</option>';
+const rm=document.getElementById('remMin');rm.innerHTML='';for(let i=0;i<60;i+=5)rm.innerHTML+='<option value="'+pad(i)+'">'+pad(i)+'</option>';
+document.getElementById('inHour').addEventListener('change',updTimePrev);
+document.getElementById('inMin').addEventListener('change',updTimePrev);
+document.getElementById('inDate').addEventListener('change',updTimePrev);
 }
-function renderPeriodSwitchState(id, current){
-  document.querySelectorAll('#'+id+' .period-btn').forEach(b=>{
-    if(b.dataset.period===current){ b.classList.add('seg-active'); }
-    else { b.classList.remove('seg-active'); }
-  });
+function setAmpm(v){addAmpm=v;draft.ampm=v;document.getElementById('ampmAM').className='text-[13px] font-bold rounded-lg py-1.5 border-none '+(v==='AM'?'bg-[#152726] text-white':'text-muted bg-transparent');document.getElementById('ampmPM').className='text-[13px] font-bold rounded-lg py-1.5 border-none '+(v==='PM'?'bg-[#152726] text-white':'text-muted bg-transparent');updTimePrev()}
+function updTimePrev(){const h=document.getElementById('inHour').value,m=document.getElementById('inMin').value;document.getElementById('timePreview').textContent=(document.getElementById('inDate').value||'—')+' · '+h+':'+m+' '+addAmpm}
+function quickTime(q){if(q==='now'){const n=new Date();let h=n.getHours();const ap=h>=12?'PM':'AM';h=h%12||12;document.getElementById('inHour').value=h;document.getElementById('inMin').value=pad(n.getMinutes());document.getElementById('inDate').value=todayStrF();setAmpm(ap)}if(q==='7:30AM'){document.getElementById('inHour').value='7';document.getElementById('inMin').value='30';setAmpm('AM')}if(q==='9:00PM'){document.getElementById('inHour').value='9';document.getElementById('inMin').value='00';setAmpm('PM')}updTimePrev()}
+function stepVital(id,d){const el=document.getElementById(id);let v=parseInt(el.value||el.placeholder||0)+d;v=Math.max(0,Math.min(300,v));el.value=v}
+function openAdd(prefill){
+editingId=(prefill&&prefill.id)||null;
+draft=prefill?Object.assign({},defaultDraft(),prefill,{hour:prefill._h,minute:prefill._m,ampm:prefill._ap}):defaultDraft();
+const n=new Date();let h=n.getHours();const ap=h>=12?'PM':'AM';const h12=h%12||12;
+if(!prefill){draft.hour=String(h12);draft.minute=pad(n.getMinutes());draft.ampm=ap;draft.date=todayStrF()}
+document.getElementById('inSys').value=draft.sys||'';document.getElementById('inDia').value=draft.dia||'';document.getElementById('inHr').value=draft.hr||'';
+document.getElementById('inDate').value=draft.date;document.getElementById('inHour').value=String(parseInt(draft.hour));document.getElementById('inMin').value=pad(parseInt(draft.minute));setAmpm(draft.ampm);updTimePrev();
+document.getElementById('addTitle').textContent=editingId?'Edit Measurement':'Add Measurement';
+document.getElementById('addProfileNote').textContent='Saving to '+PROFILES[currentProfile].name+'’s private journal';
+document.getElementById('vitalErr').classList.add('hidden');paintCtx();gotoStep(1);
+document.getElementById('addSheet').classList.remove('hidden');
 }
-function setPeriod(id, p){
-  if(id==='overviewBpPeriod'){ state.currentPeriod=p; renderOverview(); }
-  else if(id==='trendsPeriod'){ state.trendsPeriod=p; renderTrends(); }
+function closeAdd(){document.getElementById('addSheet').classList.add('hidden');editingId=null}
+function gotoStep(s){addStep=s;[1,2,3].forEach(i=>{document.getElementById('addStep'+i).classList.toggle('hidden',i!==s);document.getElementById('stepDot'+i).style.background=i<=s?'#0E9384':'#E3E9E6'});document.getElementById('addBack').classList.toggle('hidden',s===1);document.getElementById('addNext').textContent=s===3?(editingId?'Save changes':'Save measurement'):'Continue →';document.getElementById('stepLabel').textContent='Step '+s+' of 3 · '+(s===1?'Readings':s===2?'Circumstances':'Review');if(s===3)renderReview()}
+function addNav(d){if(d===1&&addStep===1&&!validStep1())return;if(d===1&&addStep===2)collectCtx();if(d===1&&addStep===3){saveMeasurement();return}gotoStep(Math.min(3,Math.max(1,addStep+d)))}
+function validStep1(){
+const s=parseInt(document.getElementById('inSys').value),di=parseInt(document.getElementById('inDia').value),hr=document.getElementById('inHr').value?parseInt(document.getElementById('inHr').value):null;
+const e=document.getElementById('vitalErr');let msg='';
+if(!s||s<60||s>260)msg='Please enter an upper (systolic) value between 60 and 260.';
+else if(!di||di<30||di>180)msg='Please enter a lower (diastolic) value between 30 and 180.';
+else if(s<=di)msg='Upper pressure is usually higher than lower pressure — please check.';
+else if(hr!=null&&(hr<30||hr>220))msg='Heart rate looks unusual — please check (30–220).';
+if(msg){e.textContent=msg;e.classList.remove('hidden');return false}
+e.classList.add('hidden');draft.sys=s;draft.dia=di;draft.hr=hr??'';draft.date=document.getElementById('inDate').value||todayStrF();draft.hour=document.getElementById('inHour').value;draft.minute=document.getElementById('inMin').value;draft.ampm=addAmpm;return true;
 }
-
-/* ---------- Charts ---------- */
-function chartData(arr, key){
-  return arr.map(m=>({x: m.date+' '+m.time, y:m[key]}));
+function collectCtx(){draft.notes=document.getElementById('inNotes').value.trim()}
+function ctxLabel(k,v){const f=a=>{const x=a.find(y=>y[0]===v);return x?x[1]:v};if(k==='exercise')return f(OPT.exercise);if(k==='caffeine')return f(OPT.caf);if(k==='sleep')return f(OPT.sleep);if(k==='activity')return f(OPT.act);return v}
+function renderReview(){
+collectCtx();const ts=tsFromInputs(draft.date,draft.hour,draft.minute,draft.ampm);const bp=getBPInfo(draft.sys,draft.dia);
+document.getElementById('reviewBox').innerHTML='<div class="card p-5 text-center"><div class="text-[11px] font-bold uppercase tracking-widest text-muted">'+fmtDateLong(ts)+' · '+draft.hour+':'+draft.minute+' '+draft.ampm+'</div><div class="font-display font-bold text-[44px] mt-1">'+draft.sys+'<span class="text-muted text-[28px]">/'+draft.dia+'</span></div><div class="text-[13px] font-bold text-[#E85D6A]">♥ '+(draft.hr||'—')+' bpm</div><span class="inline-block mt-2 text-[11px] font-bold px-3 py-1 rounded-full '+bp.cls+'">'+bp.label+'</span></div>'+'<div class="card p-4 text-[13px] space-y-1.5"><div class="font-bold">Circumstances</div>'+[['Stress',draft.stress+' / 5'],['Exercise',ctxLabel('exercise',draft.exercise)],['Caffeine',ctxLabel('caffeine',draft.caffeine)],['Nicotine',draft.nicotine],['Alcohol',draft.alcohol],['Sleep',ctxLabel('sleep',draft.sleep)+' · '+draft.sleepHours+'h'],['Before',ctxLabel('activity',draft.activity)],['Symptoms',(draft.symptoms||[]).join(', ')],['Notes',draft.notes||'—']].map(([a,b])=>'<div class="flex justify-between gap-3"><span class="text-muted font-medium">'+a+'</span><span class="font-semibold text-right">'+esc(b)+'</span></div>').join('')+'</div>';
 }
-function chartLabels(arr){
-  return arr.map(m=>{
-    const d=new Date(m.date+'T'+m.time+':00');
-    if(arr.length>20){
-      return d.toLocaleDateString(undefined,{month:'short',day:'numeric'});
-    }
-    return d.toLocaleDateString(undefined,{month:'short',day:'numeric'})+' '+formatTime12(m.time);
-  });
+function saveMeasurement(){
+if(!validStep1()){gotoStep(1);return}
+collectCtx();const ts=tsFromInputs(draft.date,draft.hour,draft.minute,draft.ampm);
+const obj={id:editingId||('m'+Date.now()+Math.floor(Math.random()*999)),sys:+draft.sys,dia:+draft.dia,hr:draft.hr===''?null:+draft.hr,date:draft.date,timestamp:ts,stress:+draft.stress,exercise:draft.exercise,exerciseWhen:draft.exerciseWhen,caffeine:draft.caffeine,nicotine:draft.nicotine,alcohol:draft.alcohol,sleep:draft.sleep,sleepHours:+draft.sleepHours,activity:draft.activity,symptoms:draft.symptoms.slice(),notes:draft.notes};
+if(editingId){const i=DB[currentProfile].measurements.findIndex(m=>m.id===editingId);if(i>=0)DB[currentProfile].measurements[i]=obj}else DB[currentProfile].measurements.push(obj);
+saveDB();closeAdd();renderAll();updateGateCounts();lastSaved=obj;
+if(!editingId)showFeedback(obj);else toast('Measurement updated');
+editingId=null;
 }
-function destroyCharts(){ ['bp','hr','trendBp','trendHr'].forEach(k=>{ if(charts[k]){ charts[k].destroy(); charts[k]=null; } }); }
-function drawBpChart(arr){
-  if(charts.bp) charts.bp.destroy();
-  const ctx = document.getElementById('bpChart'); if(!ctx) return;
-  const labels = chartLabels(arr);
-  charts.bp = new Chart(ctx, {
-    type:'line',
-    data:{
-      labels,
-      datasets:[
-        {label:'Systolic', data:arr.map(m=>m.sys), borderColor:'#0f766e', backgroundColor:'rgba(15,118,110,.12)', tension:.35, fill:true, pointRadius:arr.length>20?2:4, pointBackgroundColor:'#0f766e', borderWidth:2.5},
-        {label:'Diastolic', data:arr.map(m=>m.dia), borderColor:'#14b8a6', backgroundColor:'rgba(20,184,166,.08)', tension:.35, fill:true, pointRadius:arr.length>20?2:4, pointBackgroundColor:'#14b8a6', borderWidth:2.5},
-      ]
-    },
-    options: chartOpts()
-  });
+function editMeasurement(id){const m=DB[currentProfile].measurements.find(x=>x.id===id);if(!m)return;const d=new Date(m.timestamp);let h=d.getHours();const ap=h>=12?'PM':'AM';const pre=Object.assign({},m,{_h:String(h%12||12),_m:pad(d.getMinutes()),_ap:ap});closeDetail();openAdd(pre)}
+function delMeasurement(id){if(!confirm('Delete this measurement? This cannot be undone.'))return;DB[currentProfile].measurements=DB[currentProfile].measurements.filter(m=>m.id!==id);saveDB();renderAll();updateGateCounts();closeDetail();toast('Measurement deleted')}
+/* ============ DETAIL ============ */
+function viewDetail(id){
+const m=DB[currentProfile].measurements.find(x=>x.id===id);if(!m)return;
+const bp=getBPInfo(m.sys,m.dia),hrI=getHRInfo(m.hr);
+document.getElementById('detailBody').innerHTML='<div class="flex items-center justify-between mb-3"><div class="font-display font-bold text-[18px]">Reading detail</div><button onclick="closeDetail()" class="w-9 h-9 rounded-xl bg-white border border-black/5 font-bold cursor-pointer">✕</button></div>'+'<div class="card p-5 text-center"><div class="text-[12px] font-bold text-muted">'+fmtDateFull(m.timestamp)+' · '+fmtTime12(m.timestamp)+'</div><div class="font-display font-bold text-[48px] mt-1">'+m.sys+'<span class="text-muted text-[30px]">/'+m.dia+'</span></div><div class="text-[14px] font-bold text-[#E85D6A]">♥ '+(m.hr??'—')+' bpm</div><div class="mt-2"><span class="text-[11px] font-bold px-3 py-1 rounded-full '+bp.cls+'">'+bp.label+'</span></div><p class="text-[12.5px] text-muted leading-relaxed mt-3">'+bp.desc+'</p><p class="text-[12.5px] text-muted leading-relaxed mt-1"><b class="text-ink">Pulse:</b> '+hrI.label+' — '+hrI.desc+'</p></div>'+'<div class="card p-4 mt-3 text-[13px] space-y-1.5"><div class="font-bold">Circumstances</div>'+[['Stress',(m.stress||'—')+' / 5'],['Exercise',ctxLabel('exercise',m.exercise)],['Caffeine',ctxLabel('caffeine',m.caffeine)],['Nicotine',m.nicotine],['Alcohol',m.alcohol],['Sleep',ctxLabel('sleep',m.sleep)+' · '+(m.sleepHours??'—')+'h'],['Before',ctxLabel('activity',m.activity)],['Symptoms',(m.symptoms||[]).join(', ')]].map(([a,b])=>'<div class="flex justify-between gap-3"><span class="text-muted">'+a+'</span><span class="font-semibold text-right">'+esc(b)+'</span></div>').join('')+(m.notes?'<div class="bg-[#F6F7F3] rounded-xl p-3 mt-2"><div class="text-[11px] font-bold text-muted uppercase tracking-widest">Notes</div><div class="mt-1 leading-relaxed">'+esc(m.notes)+'</div></div>':'')+'</div>'+'<div class="flex gap-2 mt-3"><button onclick="editMeasurement(\''+m.id+'\')" class="btn-soft flex-1 py-3 text-[14px]">Edit</button><button onclick="delMeasurement(\''+m.id+'\')" class="flex-1 py-3 text-[14px] font-bold text-[#B4232A] bg-[#FFE9E9] rounded-[18px] border-none cursor-pointer">Delete</button></div>'+'<p class="text-[11px] text-muted text-center mt-3">General information only — not a diagnosis. If concerned, please contact a health professional.</p>';
+document.getElementById('detailSheet').classList.remove('hidden');
 }
-function drawHrChart(arr){
-  if(charts.hr) charts.hr.destroy();
-  const ctx = document.getElementById('hrChart'); if(!ctx) return;
-  charts.hr = new Chart(ctx,{
-    type:'line',
-    data:{ labels:chartLabels(arr),
-      datasets:[{label:'Heart rate', data:arr.map(m=>m.hr), borderColor:'#e11d8a', backgroundColor:'rgba(225,29,138,.1)', tension:.35, fill:true, pointRadius:arr.length>20?2:4, pointBackgroundColor:'#e11d8a', borderWidth:2.5}]
-    },
-    options: chartOpts()
-  });
+function closeDetail(){document.getElementById('detailSheet').classList.add('hidden')}
+/* ============ FEEDBACK ============ */
+function showFeedback(m){
+const bp=getBPInfo(m.sys,m.dia),hrI=getHRInfo(m.hr);
+const recent=allM().filter(x=>x.id!==m.id).filter(x=>x.timestamp>=Date.now()-7*86400000).slice(0,10);
+const aS=recent.length?Math.round(avg(recent.map(x=>+x.sys))):null;
+const infl=[];
+if(m.stress>=4)infl.push(['High stress noted','Stress is often associated with temporarily higher readings. A few slow breaths and a quiet rest before remeasuring may help.']);
+if(m.caffeine==='within2h'||m.caffeine==='multiple')infl.push(['Recent caffeine','Caffeine is often associated with short-term rises in blood pressure and pulse for some people. Noting the timing helps you spot your own pattern.']);
+if(m.exercise!=='none'&&(m.exerciseWhen==='within30'||m.exerciseWhen==='30to60'))infl.push(['Recent exercise','Measuring soon after activity often shows higher numbers. Resting quietly for at least 5 minutes usually gives a calmer baseline.']);
+if(m.sleep==='poor'||m.sleep==='fair')infl.push(['Broken sleep','Poor sleep is commonly linked with day-to-day variation. Keep noting sleep to see your own trend.']);
+if(m.nicotine==='recent')infl.push(['Recent nicotine','Nicotine use is often associated with short-term rises. Timing notes help interpretation.']);
+if(m.alcohol!=='no')infl.push(['Alcohol noted','Alcohol can influence readings in the short and longer term. Tracking context helps.']);
+if(m.activity==='rested'||m.activity==='sitting')infl.push(['Good measuring conditions','You measured after resting — that is the calm, recommended way to track for comparison.']);
+if(m.symptoms&&!m.symptoms.includes('none'))infl.push(['Symptoms noted: '+m.symptoms.join(', '),'You noted symptoms with this reading. Rest, and if you feel unwell or are worried, please seek medical advice promptly — this journal cannot assess symptoms.']);
+if(!infl.length)infl.push(['Steady context','No strong influencing factors were noted for this reading.']);
+const cmp=aS?(Math.abs(m.sys-aS)<=5?'Your systolic is close to your 7-day average of ~'+aS+'.':m.sys>aS?'Your systolic is about '+(m.sys-aS)+' above your 7-day average of ~'+aS+'. Single higher readings are common — context and repeats matter.':'Your systolic is about '+(aS-m.sys)+' below your 7-day average of ~'+aS+'.'):'This is one of your first recent readings — keep logging to build a personal average.';
+document.getElementById('feedbackBody').innerHTML='<div class="text-center pt-2"><div class="w-16 h-16 mx-auto rounded-full flex items-center justify-center text-white text-2xl font-bold" style="background:linear-gradient(135deg,#0E9384,#0A6B5E)">✓</div><div class="font-display font-bold text-[22px] mt-3">Saved to '+PROFILES[currentProfile].name+'’s journal</div><div class="text-[13px] text-muted">'+fmtDateFull(m.timestamp)+' · '+fmtTime12(m.timestamp)+'</div></div>'+'<div class="card p-5 mt-4 text-center"><div class="font-display font-bold text-[40px]">'+m.sys+'<span class="text-muted text-[26px]">/'+m.dia+'</span></div><div class="text-[13px] font-bold text-[#E85D6A]">♥ '+(m.hr??'—')+' bpm</div><div class="mt-2"><span class="text-[11px] font-bold px-3 py-1.5 rounded-full '+bp.cls+'">'+bp.label+'</span></div></div>'+'<div class="card p-4 mt-3"><div class="font-bold text-[14px] mb-1">What this means — gently</div><p class="text-[13px] text-[#4B5F5C] leading-relaxed">'+bp.desc+'</p><p class="text-[13px] text-[#4B5F5C] leading-relaxed mt-2"><b class="text-ink">Pulse:</b> '+hrI.desc+'</p><p class="text-[13px] text-[#4B5F5C] leading-relaxed mt-2"><b class="text-ink">Vs your recent pattern:</b> '+cmp+'</p></div>'+'<div class="card p-4 mt-3"><div class="font-bold text-[14px] mb-2">Factors that may have influenced this reading</div><div class="space-y-2">'+infl.map(([t,d])=>'<div class="bg-[#F6F7F3] rounded-2xl p-3"><div class="text-[13px] font-bold">'+esc(t)+'</div><div class="text-[12.5px] text-[#4B5F5C] leading-relaxed">'+d+'</div></div>').join('')+'</div></div>'+'<div class="card p-4 mt-3" style="background:linear-gradient(135deg,#EAF4F0,#fff)"><div class="font-bold text-[14px]">Calm next steps</div><ul class="text-[13px] text-[#2E443F] leading-relaxed mt-1.5 space-y-1 list-disc pl-5"><li>If a number surprises you, rest 5 minutes and measure once more.</li><li>Try the same arm, seated, feet flat, cuff at heart level.</li><li>Morning + evening pairs reveal your rhythm best.</li><li>Bring this journal to appointments if you have questions.</li></ul></div>'+'<p class="text-[11px] text-muted leading-relaxed mt-3 bg-white rounded-2xl p-3 border border-black/5">For personal tracking and general information only. Not a medical device. Does not diagnose conditions and does not replace professional healthcare advice. If you feel unwell, seek care promptly.</p>'+'<div class="card p-5 mt-3 text-center" style="background:linear-gradient(135deg,#152726,#2A4A47);color:#fff;border:none"><div class="font-display font-bold text-[19px]">Would you like to measure again?</div><p class="text-[12.5px] opacity-70 mt-1">A repeat after 1–2 minutes of quiet rest is common practice.</p><div class="flex gap-2 mt-4"><button onclick="measureAgain()" class="flex-1 py-3 rounded-2xl font-bold text-[14px] border-none cursor-pointer" style="background:#0E9384;color:#fff">Yes, measure again</button><button onclick="closeFeedback()" class="flex-1 py-3 rounded-2xl font-bold text-[14px] border-none cursor-pointer" style="background:rgba(255,255,255,.15);color:#fff">No, done</button></div><button onclick="viewSavedDetail()" class="w-full mt-2 py-2 text-[12px] font-bold bg-transparent border-none cursor-pointer" style="color:#9AD9CE">View saved reading →</button></div>';
+document.getElementById('feedbackSheet').classList.remove('hidden');
 }
-function drawTrendBpChart(arr){
-  if(charts.trendBp) charts.trendBp.destroy();
-  const ctx=document.getElementById('trendBpChart'); if(!ctx) return;
-  charts.trendBp = new Chart(ctx,{
-    type:'line',
-    data:{labels:chartLabels(arr),
-      datasets:[
-        {label:'Systolic', data:arr.map(m=>m.sys), borderColor:'#0f766e', backgroundColor:'rgba(15,118,110,.12)', tension:.35, fill:true, pointRadius:arr.length>20?2:4, borderWidth:2.5},
-        {label:'Diastolic', data:arr.map(m=>m.dia), borderColor:'#14b8a6', backgroundColor:'rgba(20,184,166,.08)', tension:.35, fill:true, pointRadius:arr.length>20?2:4, borderWidth:2.5},
-      ]
-    },
-    options: chartOpts()
-  });
+function measureAgain(){closeFeedback();setTimeout(()=>openAdd(),150)}
+function closeFeedback(){document.getElementById('feedbackSheet').classList.add('hidden')}
+function viewSavedDetail(){if(lastSaved){closeFeedback();setTimeout(()=>viewDetail(lastSaved.id),150)}}
+/* ============ REMINDERS ============ */
+function fmtRem(t){const[h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM';const hh=h%12||12;return hh+':'+pad(m)+' '+ap}
+function setRemAmpm(v){remAmpm=v;document.getElementById('remAM').className='text-[12px] font-bold rounded-lg py-1.5 border-none '+(v==='AM'?'bg-[#152726] text-white':'text-muted bg-transparent');document.getElementById('remPM').className='text-[12px] font-bold rounded-lg py-1.5 border-none '+(v==='PM'?'bg-[#152726] text-white':'text-muted bg-transparent')}
+function quickRem(t,label){const[h,m]=t.split(':').map(Number);const ap=h>=12?'PM':'AM';document.getElementById('remHour').value=h%12||12;document.getElementById('remMin').value=pad(m);setRemAmpm(ap);document.getElementById('remLabel').value=label}
+function openReminders(){if(!currentProfile)return;document.getElementById('remProfileNote').textContent='Personal reminders for '+PROFILES[currentProfile].name;renderReminders();document.getElementById('reminderSheet').classList.remove('hidden')}
+function closeReminders(){document.getElementById('reminderSheet').classList.add('hidden');renderAll()}
+function renderReminders(){
+const list=DB[currentProfile].reminders;
+document.getElementById('remList').innerHTML=list.length?list.map(r=>'<div class="card p-3.5 flex items-center justify-between gap-2"><div><div class="font-bold text-[14px]">'+esc(r.label)+'</div><div class="text-[12px] text-muted font-semibold">'+fmtRem(r.time)+'</div></div><div class="flex items-center gap-2"><button onclick="toggleRem(\''+r.id+'\')" class="toggle '+(r.enabled?'on':'')+'" aria-label="toggle"></button><button onclick="delRem(\''+r.id+'\')" class="w-9 h-9 rounded-xl bg-[#FFE9E9] text-[#B4232A] font-bold border-none cursor-pointer">×</button></div></div>').join(''):'<div class="card p-6 text-center text-[13px] text-muted">No reminders yet.<br>Add a gentle nudge like <b>7:30 AM Morning check</b> or <b>9:00 PM Evening check</b>.</div>';
+renderRemDot();
 }
-function drawTrendHrChart(arr){
-  if(charts.trendHr) charts.trendHr.destroy();
-  const ctx=document.getElementById('trendHrChart'); if(!ctx) return;
-  charts.trendHr = new Chart(ctx,{
-    type:'line',
-    data:{labels:chartLabels(arr),
-      datasets:[{label:'Heart rate', data:arr.map(m=>m.hr), borderColor:'#e11d8a', backgroundColor:'rgba(225,29,138,.1)', tension:.35, fill:true, pointRadius:arr.length>20?2:4, borderWidth:2.5}]
-    },
-    options: chartOpts()
-  });
+function addReminder(){
+let h=parseInt(document.getElementById('remHour').value)%12;if(remAmpm==='PM')h+=12;
+const m=document.getElementById('remMin').value;const label=document.getElementById('remLabel').value.trim()||'Check';
+DB[currentProfile].reminders.push({id:'r'+Date.now(),time:pad(h)+':'+m,label,enabled:true,lastFired:''});
+saveDB();document.getElementById('remLabel').value='';renderReminders();toast('Reminder saved — '+fmtRem(pad(h)+':'+m));
 }
-function chartOpts(){
-  return {
-    responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#1f2a2e', padding:10, cornerRadius:8, titleFont:{size:11}, bodyFont:{size:12, weight:'600'} } },
-    scales:{
-      x:{ grid:{display:false}, ticks:{ font:{size:10}, color:'#5a6b6f', maxRotation:0, autoSkip:true, maxTicksLimit:6 } },
-      y:{ grid:{color:'#eef2f1', drawBorder:false}, ticks:{ font:{size:10}, color:'#5a6b6f' } }
-    },
-    interaction:{ intersect:false, mode:'index' }
-  };
+function toggleRem(id){const r=DB[currentProfile].reminders.find(x=>x.id===id);if(r){r.enabled=!r.enabled;saveDB();renderReminders()}}
+function delRem(id){DB[currentProfile].reminders=DB[currentProfile].reminders.filter(x=>x.id!==id);saveDB();renderReminders()}
+function renderRemDot(){const on=currentProfile&&DB[currentProfile].reminders.some(r=>r.enabled);document.getElementById('remDot').classList.toggle('hidden',!on)}
+function enableNotif(){if(!('Notification' in window))return toast('Notifications not supported here');Notification.requestPermission().then(p=>toast(p==='granted'?'Notifications enabled':'Permission: '+p))}
+function checkReminders(){
+if(!currentProfile)return;const now=new Date();const cur=pad(now.getHours())+':'+pad(now.getMinutes());const today=todayStrF();
+DB[currentProfile].reminders.forEach(r=>{
+if(r.enabled&&r.time===cur&&r.lastFired!==today+'_'+cur){
+r.lastFired=today+'_'+cur;saveDB();
+toast('⏰ '+r.label+' — time for your check');
+if('Notification' in window&&Notification.permission==='granted'){try{new Notification('Pulse Journal — '+PROFILES[currentProfile].name,{body:r.label+' ('+fmtRem(r.time)+')'})}catch(e){}}
+renderRemDot();
+}});
 }
-
-/* ---------- Toast ---------- */
-let toastTimer=null;
-function toast(msg){
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.remove('hidden');
-  t.classList.add('fade-in');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>{ t.classList.add('hidden'); }, 2600);
+/* ============ VOICE ============ */
+function openVoice(){document.getElementById('voiceText').textContent='—';document.getElementById('vSys').value='';document.getElementById('vDia').value='';document.getElementById('vHr').value='';document.getElementById('voiceType').value='';document.getElementById('micState').textContent=('webkitSpeechRecognition' in window||'SpeechRecognition' in window)?'Tap the microphone and speak':'Microphone not available — type below instead';document.getElementById('voiceOverlay').classList.remove('hidden')}
+function closeVoice(){stopListen();document.getElementById('voiceOverlay').classList.add('hidden')}
+function toggleListen(){
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(!SR){toast('Voice not supported — please type below');return}
+if(listening){stopListen();return}
+recognition=new SR();recognition.lang='en-US';recognition.interimResults=true;recognition.maxAlternatives=1;
+listening=true;document.getElementById('micBtn').classList.add('mic-pulse');document.getElementById('micState').textContent='Listening… say e.g. “122 over 78, pulse 70”';document.getElementById('voiceWave').parentElement.classList.add('listening');document.getElementById('voiceWave').style.opacity='1';
+recognition.onresult=e=>{let txt='';for(let i=0;i<e.results.length;i++)txt+=e.results[i][0].transcript+' ';document.getElementById('voiceText').textContent=txt.trim();const p=parseVoiceNumbers(txt);if(p.sys)document.getElementById('vSys').value=p.sys;if(p.dia)document.getElementById('vDia').value=p.dia;if(p.hr)document.getElementById('vHr').value=p.hr;};
+recognition.onend=()=>{if(listening)stopListen(true)};
+recognition.onerror=()=>{stopListen();document.getElementById('micState').textContent='Could not hear — try again or type below'};
+try{recognition.start()}catch(e){stopListen()}
 }
-
-/* ---------- Init ---------- */
-function init(){
-  loadState();
-  // populate time selects
-  document.getElementById('inTime').innerHTML = '<option value="">Pick a time…</option>'+buildTimeOptions();
-  document.getElementById('edTime').innerHTML = '<option value="">Pick a time…</option>'+buildTimeOptions();
-  // daily reminder options
-  const dailyOpts=['07:00','07:30','08:00','08:30','09:00','12:00','18:00','19:00','20:00','21:00','21:30','22:00']
-    .map(t=>`<option value="${t}">${formatTime12(t)}</option>`).join('');
-  document.getElementById('reminderDaily').innerHTML = '<option value="">Off</option>'+dailyOpts;
-  scheduleReminderCheck();
+function stopListen(silent){listening=false;try{if(recognition)recognition.stop()}catch(e){}recognition=null;document.getElementById('micBtn').classList.remove('mic-pulse');document.getElementById('voiceWave').style.opacity='.4';if(!silent){const t=document.getElementById('voiceText').textContent;document.getElementById('micState').textContent=(t&&t!=='—')?'Heard you — review and confirm below':'Tap the microphone and speak'}}
+function parseVoiceNumbers(text){
+text=text.toLowerCase().replace(/,/g,' ').replace(/-/g,' ');
+let sys=null,dia=null,hr=null;
+let m=text.match(/(\d{2,3})\s*(?:\/|over|on|and|by)\s*(\d{2,3})/);
+if(m){sys=parseInt(m[1]);dia=parseInt(m[2])}
+else{const nums=[...text.matchAll(/(\d{2,3})/g)].map(x=>parseInt(x[1]));if(nums.length>=2){sys=nums[0];dia=nums[1];if(nums.length>=3)hr=nums[2]}}
+const hrm=text.match(/(?:pulse|heart|hr|bpm|beat)[^\d]{0,12}(\d{2,3})/);
+if(hrm)hr=parseInt(hrm[1]);
+else if(sys!==null&&dia!==null){const nums=[...text.matchAll(/(\d{2,3})/g)].map(x=>parseInt(x[1]));if(nums.length>=3)hr=nums[2]}
+return{sys,dia,hr};
 }
-init();
+function onVoiceType(v){document.getElementById('voiceText').textContent=v||'—';const p=parseVoiceNumbers(v||'');if(p.sys)document.getElementById('vSys').value=p.sys;if(p.dia)document.getElementById('vDia').value=p.dia;if(p.hr)document.getElementById('vHr').value=p.hr}
+function demoVoice(){const d='122 over 78, pulse 70';document.getElementById('voiceType').value=d;onVoiceType(d)}
+function applyVoice(){
+const s=parseInt(document.getElementById('vSys').value),d=parseInt(document.getElementById('vDia').value),h=document.getElementById('vHr').value?parseInt(document.getElementById('vHr').value):null;
+if(!s||s<60||s>260||!d||d<30||d>180||s<=d)return toast('Please check values — e.g. 120 / 78');
+if(h!=null&&(h<30||h>220))return toast('Please check pulse (30–220)');
+closeVoice();
+const addOpen=!document.getElementById('addSheet').classList.contains('hidden');
+if(!addOpen)openAdd();
+document.getElementById('inSys').value=s;document.getElementById('inDia').value=d;document.getElementById('inHr').value=h||'';gotoStep(1);
+toast('Voice values added — continue to review & save');
+}
+/* ============ INIT ============ */
+document.addEventListener('DOMContentLoaded',()=>{
+initDB();updateGateCounts();buildCtx();fillTimeSelects();setAmpm('AM');setRemAmpm('AM');
+document.getElementById('remHour').value='7';document.getElementById('remMin').value='30';
+setInterval(checkReminders,15000);
+});
 </script>
 </body>
 </html>
