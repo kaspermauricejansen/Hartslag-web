@@ -416,6 +416,58 @@ Record by Voice
 <div id="toastRoot" class="fixed bottom-28 left-1/2 -translate-x-1/2 z-[120] flex flex-col gap-2 items-center w-full max-w-[400px] px-4 pointer-events-none"></div>
 
 <script>
+  /* ============ SUPABASE ============ */
+
+const SUPABASE_URL = 'https://reolvtmbikwfozotlugy.supabase.co/rest/v1/';
+const SUPABASE_KEY = 'sb_publishable_qpAw5o-YshN2DEv8i-jpEQ_Q_sIOCUI';
+
+async function saveToSupabase(m) {
+  try {
+    const response = await fetch(
+      SUPABASE_URL + '/rest/v1/hartslag',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': 'Bearer ' + SUPABASE_KEY,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          profile: currentProfile,
+          hartslag: m.hr,
+          sys: m.sys,
+          dia: m.dia,
+          stress: m.stress,
+          exercise: m.exercise,
+          exercise_when: m.exerciseWhen,
+          caffeine: m.caffeine,
+          nicotine: m.nicotine,
+          alcohol: m.alcohol,
+          sleep: m.sleep,
+          sleep_hours: m.sleepHours,
+          activity: m.activity,
+          symptoms: (m.symptoms || []).join(', '),
+          notes: m.notes,
+          measured_at: new Date(m.timestamp).toISOString()
+        })
+      }
+    );
+
+    if (!response.ok) {
+      console.error('Supabase error:', await response.text());
+      toast('Kon niet opslaan in de database');
+      return false;
+    }
+
+    return true;
+
+  } catch (error) {
+    console.error('Supabase verbinding fout:', error);
+    toast('Geen verbinding met Supabase');
+    return false;
+  }
+}
 /* ============ STORE — CLEAN SLATE ============ */
 const LS_KEY='pulseJournalCleanV1';
 const PROFILES={
